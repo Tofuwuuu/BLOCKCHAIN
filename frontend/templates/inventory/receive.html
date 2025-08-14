@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Receiving - Create Report</h5>
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="row g-3">
+        <div class="col-md-6">
+          {{ form.po_id.label(class='form-label') }}
+          {{ form.po_id(class='form-select') }}
+        </div>
+        <div class="col-12">
+          {{ form.notes.label(class='form-label') }}
+          {{ form.notes(class='form-control', rows=3) }}
+        </div>
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-primary">Create Report</button>
+      </div>
+    </form>
+  </div>
+  </div>
+{% endblock %}
+
+

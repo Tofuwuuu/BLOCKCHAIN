@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<h5 class="mb-3">Audit Trail</h5>
+<form class="row g-2 mb-3" method="GET">
+  <div class="col-auto">
+    <input class="form-control" type="text" name="po_id" placeholder="PO ID" value="{{ request.args.get('po_id','') }}" />
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-primary">Filter</button>
+  </div>
+  </form>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead><tr><th>Block</th><th>Timestamp</th><th>Sender</th><th>Receiver</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for tx in transactions or [] %}
+          <tr>
+            <td>{{ tx.block_index }}</td>
+            <td>{{ tx.timestamp }}</td>
+            <td>{{ tx.sender }}</td>
+            <td>{{ tx.receiver }}</td>
+            <td>{{ tx.action }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">No transactions</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

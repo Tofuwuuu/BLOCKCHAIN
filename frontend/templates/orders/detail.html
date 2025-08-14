@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">PO {{ po.po_number }}</h5>
+  <div>
+    {% if po.status != 'Approved' %}
+      <a href="{{ url_for('approve_order', po_id=po.id) }}" class="btn btn-success">Approve</a>
+    {% endif %}
+  </div>
+  </div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4"><strong>Supplier:</strong> {{ po.supplier.name }}</div>
+      <div class="col-md-4"><strong>Date:</strong> {{ po.date_created.strftime('%Y-%m-%d') if po.date_created else '' }}</div>
+      <div class="col-md-4"><strong>Status:</strong> <span class="badge bg-secondary">{{ po.status }}</span></div>
+      <div class="col-12"><strong>Delivery Address:</strong> {{ po.delivery_address }}</div>
+    </div>
+  </div>
+  </div>
+
+<div class="card">
+  <div class="card-header">Items</div>
+  <div class="card-body">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          {{ form.product_id.label(class='form-label') }}
+          {{ form.product_id(class='form-select') }}
+        </div>
+        <div class="col-md-3">
+          {{ form.quantity.label(class='form-label') }}
+          {{ form.quantity(class='form-control') }}
+        </div>
+        <div class="col-md-3">
+          {{ form.unit_price.label(class='form-label') }}
+          {{ form.unit_price(class='form-control') }}
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-primary w-100">Add</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="table-responsive mt-4">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th class="text-end">Qty</th>
+            <th class="text-end">Unit Price</th>
+            <th class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in po.items %}
+          <tr>
+            <td>{{ item.product.name }}</td>
+            <td class="text-end">{{ item.quantity }}</td>
+            <td class="text-end">{{ format_currency(item.unit_price) if format_currency else item.unit_price }}</td>
+            <td class="text-end">{{ format_currency(item.quantity * item.unit_price) if format_currency else (item.quantity * item.unit_price) }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">No items yet</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3" class="text-end">Total</th>
+            <th class="text-end">{{ format_currency(po.total_amount) if format_currency else po.total_amount }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

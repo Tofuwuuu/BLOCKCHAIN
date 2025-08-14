@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h5 class="mb-3">Transaction</h5>
+{% if tx %}
+<div class="card">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6"><strong>Sender:</strong> {{ tx.sender if tx.sender is defined else tx['sender'] }}</div>
+      <div class="col-md-6"><strong>Receiver:</strong> {{ tx.receiver if tx.receiver is defined else tx['receiver'] }}</div>
+      <div class="col-md-6"><strong>Action:</strong> {{ tx.action if tx.action is defined else tx['action'] }}</div>
+      <div class="col-md-6"><strong>Timestamp:</strong> {{ tx.timestamp if tx.timestamp is defined else tx['timestamp'] }}</div>
+    </div>
+    <hr>
+    <pre class="mb-0">{{ (tx.details if tx.details is defined else tx['details']) | tojson(indent=2) }}</pre>
+  </div>
+  </div>
+{% else %}
+<p class="text-muted">Transaction not found.</p>
+{% endif %}
+{% endblock %}
+
+

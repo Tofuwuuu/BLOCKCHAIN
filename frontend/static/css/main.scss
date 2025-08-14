@@ -1,0 +1,163 @@
+// Import Bootstrap
+@import "bootstrap/scss/bootstrap";
+
+// Import Philippine theme
+@import "ph-theme";
+
+// Additional custom styles
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+main {
+    flex: 1;
+}
+
+// Dashboard Stats
+.stats-container {
+    .ph-stat-card {
+        margin-bottom: 1rem;
+        
+        .icon {
+            font-size: 2rem;
+            opacity: 0.2;
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+    }
+}
+
+// Tables
+.table-container {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+// Forms
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+// Cards
+.dashboard-card {
+    height: 100%;
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+// Blockchain Explorer
+.blockchain-container {
+    .block-card {
+        transition: transform 0.2s;
+        cursor: pointer;
+        
+        &:hover {
+            transform: translateY(-2px);
+        }
+    }
+}
+
+// Status Badges
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 500;
+    
+    &.pending {
+        background-color: rgba($warning, 0.1);
+        color: darken($warning, 30%);
+    }
+    
+    &.approved {
+        background-color: rgba($success, 0.1);
+        color: darken($success, 10%);
+    }
+    
+    &.completed {
+        background-color: rgba($primary, 0.1);
+        color: darken($primary, 10%);
+    }
+}
+
+// Philippine-specific elements
+.ph-flag-colors {
+    display: flex;
+    height: 4px;
+    
+    .blue {
+        flex: 1;
+        background-color: $ph-blue;
+    }
+    
+    .red {
+        flex: 1;
+        background-color: $ph-red;
+    }
+    
+    .yellow {
+        flex: 1;
+        background-color: $ph-yellow;
+    }
+}
+
+// Form improvements
+.form-group {
+    margin-bottom: 1.5rem;
+    
+    label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+}
+
+// Animations
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+// Responsive improvements
+@media (max-width: 768px) {
+    .ph-header {
+        .company-name {
+            font-size: 1.5rem;
+        }
+        
+        .tagline {
+            font-size: 0.8rem;
+        }
+    }
+    
+    .ph-stat-card {
+        margin-bottom: 1rem;
+    }
+}
+
+// Print styles
+@media print {
+    .ph-header, .ph-navbar, .ph-footer {
+        display: none;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: none;
+    }
+}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card text-bg-warning">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-5">Pending Orders</div>
+            <div class="display-6">{{ pending_orders or 0 }}</div>
+          </div>
+          <span class="opacity-50" aria-hidden="true">⏳</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-bg-success">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-5">Approved Orders</div>
+            <div class="display-6">{{ approved_orders or 0 }}</div>
+          </div>
+          <span class="opacity-50" aria-hidden="true">✔️</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-bg-danger">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fs-5">Low Inventory</div>
+            <div class="display-6">{{ low_inventory or 0 }}</div>
+          </div>
+          <span class="opacity-50" aria-hidden="true">⚠️</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header">Recent Purchase Orders</div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>Supplier</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders or [] %}
+          <tr>
+            <td>{{ order.po_number }}</td>
+            <td>{{ order.supplier.name if order.supplier else '' }}</td>
+            <td>{{ order.date_created.strftime('%Y-%m-%d') if order.date_created else '' }}</td>
+            <td><span class="badge bg-secondary">{{ order.status }}</span></td>
+            <td class="text-end"><a href="{{ url_for('order_detail', po_id=order.id) }}" class="btn btn-sm btn-outline-primary">View</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">No recent orders</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

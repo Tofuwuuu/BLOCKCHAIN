@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Inventory</h5>
+  <div>
+    <a href="{{ url_for('receive_shipment') }}" class="btn btn-success me-2">Receive</a>
+    <a href="{{ url_for('adjust_inventory') }}" class="btn btn-outline-primary">Adjust</a>
+  </div>
+  </div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Unit</th>
+            <th class="text-end">Qty</th>
+            <th class="text-end">Unit Price</th>
+            <th class="text-end">Total Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in inventory or [] %}
+          <tr>
+            <td>{{ item.product }}</td>
+            <td>{{ item.unit }}</td>
+            <td class="text-end">{{ item.quantity }}</td>
+            <td class="text-end">{{ format_currency(item.unit_price) if format_currency else item.unit_price }}</td>
+            <td class="text-end">{{ format_currency(item.total_value) if format_currency else item.total_value }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">No inventory items</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

@@ -1,0 +1,223 @@
+// Philippine Theme Variables
+$ph-blue: #0038A8;
+$ph-red: #CE1126;
+$ph-yellow: #FCD116;
+$ph-white: #FFFFFF;
+
+// Override Bootstrap variables
+$primary: $ph-blue;
+$danger: $ph-red;
+$warning: $ph-yellow;
+
+// Custom Philippine-themed styles
+.ph-header {
+  background: linear-gradient(90deg, $ph-blue 33.33%, $ph-red 33.33% 66.66%, $ph-yellow 66.66%);
+  color: $ph-white;
+  padding: 1rem 0;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: $ph-yellow;
+  }
+
+  .company-name {
+    font-family: 'Noto Sans', sans-serif;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .tagline {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+}
+
+.ph-navbar {
+  background-color: darken($ph-blue, 10%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  .nav-link {
+    color: rgba($ph-white, 0.9);
+    font-weight: 500;
+    padding: 1rem 1.25rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: $ph-white;
+      background-color: rgba($ph-white, 0.1);
+    }
+
+    &.active {
+      color: $ph-white;
+      background-color: rgba($ph-white, 0.15);
+    }
+  }
+}
+
+.ph-card {
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  
+  .card-header {
+    background: linear-gradient(135deg, $ph-blue, darken($ph-blue, 10%));
+    color: $ph-white;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border: none;
+    padding: 1rem 1.25rem;
+  }
+}
+
+.ph-footer {
+  background: linear-gradient(135deg, darken($ph-blue, 15%), darken($ph-blue, 25%));
+  color: $ph-white;
+  padding: 3rem 0;
+  margin-top: 4rem;
+
+  .footer-title {
+    color: $ph-yellow;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .footer-link {
+    color: rgba($ph-white, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $ph-white;
+    }
+  }
+}
+
+// Custom Components
+.ph-stat-card {
+  background: $ph-white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: transform 0.2s ease;
+  border-top: 4px solid $ph-blue;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &.warning {
+    border-top-color: $ph-yellow;
+  }
+
+  &.danger {
+    border-top-color: $ph-red;
+  }
+
+  .stat-title {
+    color: $gray-600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $gray-800;
+  }
+}
+
+// Philippine-specific form styling
+.ph-form {
+  .form-label {
+    font-weight: 500;
+    color: $gray-700;
+  }
+
+  .form-control, .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid $gray-300;
+    padding: 0.75rem 1rem;
+
+    &:focus {
+      border-color: $ph-blue;
+      box-shadow: 0 0 0 0.2rem rgba($ph-blue, 0.15);
+    }
+  }
+}
+
+// Table styling
+.ph-table {
+  thead {
+    background: linear-gradient(90deg, $ph-blue, darken($ph-blue, 10%));
+    
+    th {
+      color: $ph-white;
+      font-weight: 600;
+      border: none;
+      padding: 1rem;
+    }
+  }
+
+  tbody {
+    tr {
+      &:hover {
+        background-color: rgba($ph-blue, 0.02);
+      }
+    }
+
+    td {
+      padding: 1rem;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Badge styling
+.ph-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 500;
+
+  &.badge-pending {
+    background-color: rgba($ph-yellow, 0.15);
+    color: darken($ph-yellow, 30%);
+  }
+
+  &.badge-approved {
+    background-color: rgba($success, 0.15);
+    color: darken($success, 10%);
+  }
+}
+
+// Button styling
+.ph-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &.btn-primary {
+    background: linear-gradient(135deg, $ph-blue, darken($ph-blue, 10%));
+    border: none;
+
+    &:hover {
+      background: linear-gradient(135deg, darken($ph-blue, 5%), darken($ph-blue, 15%));
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-outline-primary {
+    border: 2px solid $ph-blue;
+    color: $ph-blue;
+
+    &:hover {
+      background-color: $ph-blue;
+      color: $ph-white;
+    }
+  }
+}

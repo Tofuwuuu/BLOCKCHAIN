@@ -1,0 +1,121 @@
+/* Philippine Theme Colors */
+:root {
+  --ph-blue: #0038A8;
+  --ph-red: #CE1126;
+  --ph-yellow: #FCD116;
+  --ph-white: #FFFFFF;
+  --ph-light-blue: #E6F3FF;
+  --ph-light-red: #FFE6E9;
+}
+
+/* Global Styles */
+body {
+  background: linear-gradient(135deg, rgba(0,56,168,0.05) 0%, rgba(206,17,38,0.05) 100%);
+  font-family: 'Noto Sans', sans-serif;
+  color: #333;
+}
+
+/* Login Page Styles */
+.login-container {
+  min-height: calc(100vh - 150px);
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.ph-login-card {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.ph-flag-strip {
+  height: 4px;
+  background: linear-gradient(to right,
+    var(--ph-blue) 0%,
+    var(--ph-blue) 33.33%,
+    var(--ph-red) 33.33%,
+    var(--ph-red) 66.66%,
+    var(--ph-yellow) 66.66%,
+    var(--ph-yellow) 100%
+  );
+}
+
+.company-title {
+  color: var(--ph-blue);
+  font-weight: 600;
+}
+
+/* Form Styles */
+.ph-form .form-control {
+  border: 2px solid #e9ecef;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.ph-form .form-control:focus {
+  border-color: var(--ph-blue);
+  box-shadow: 0 0 0 0.25rem rgba(0, 56, 168, 0.1);
+}
+
+.ph-form .form-label {
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Button Styles */
+.ph-btn-primary {
+  background-color: var(--ph-blue);
+  border-color: var(--ph-blue);
+  color: white;
+  padding: 0.75rem 2rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.ph-btn-primary:hover {
+  background-color: #002c85;
+  border-color: #002c85;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 56, 168, 0.2);
+}
+
+/* Checkbox Style */
+.ph-checkbox {
+  accent-color: var(--ph-blue);
+}
+
+/* Header Styles */
+.ph-header {
+  background: var(--ph-blue);
+  color: var(--ph-white);
+  padding: 1rem 0;
+  position: relative;
+}
+
+.ph-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right,
+    var(--ph-blue) 33.33%,
+    var(--ph-red) 33.33% 66.66%,
+    var(--ph-yellow) 66.66%
+  );
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .ph-login-card {
+    margin: 1rem;
+  }
+  .card-body {
+    padding: 2rem 1.5rem;
+  }
+}

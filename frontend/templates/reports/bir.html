@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<h5 class="mb-3">BIR Report</h5>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-md-4"><strong>Company:</strong> {{ report.company_name }}</div>
+      <div class="col-md-4"><strong>TIN:</strong> {{ report.bir_tin }}</div>
+      <div class="col-md-4"><strong>Period:</strong> {{ report.report_period }}</div>
+      <div class="col-12"><strong>Address:</strong> {{ report.company_address }}</div>
+    </div>
+  </div>
+  </div>
+
+<div class="card mt-3">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>#</th><th>Description</th><th class="text-end">Amount</th><th class="text-end">VAT</th></tr></thead>
+        <tbody>
+          {% for item in report.items %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ item.description }}</td>
+            <td class="text-end">{{ format_currency(item.amount) if format_currency else item.amount }}</td>
+            <td class="text-end">{{ format_currency(item.vat) if format_currency else item.vat }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">No items</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="2" class="text-end">Totals</th>
+            <th class="text-end">{{ format_currency(report.total_purchases) if format_currency else report.total_purchases }}</th>
+            <th class="text-end">{{ format_currency(report.total_vat) if format_currency else report.total_vat }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

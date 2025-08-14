@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<h5 class="mb-3">Blockchain Explorer</h5>
+<div class="accordion" id="chainAccordion">
+  {% for block in chain or [] %}
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="heading{{ loop.index }}">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+        Block #{{ block.index if block.index is defined else block['index'] }} — {{ block.timestamp if block.timestamp is defined else block['timestamp'] }}
+      </button>
+    </h2>
+    <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#chainAccordion">
+      <div class="accordion-body">
+        <div class="row g-3">
+          <div class="col-md-6"><strong>Hash:</strong> {{ block.hash if block.hash is defined else block['hash'] }}</div>
+          <div class="col-md-6"><strong>Prev Hash:</strong> {{ block.previous_hash if block.previous_hash is defined else block['previous_hash'] }}</div>
+          <div class="col-md-6"><strong>Nonce:</strong> {{ block.nonce if block.nonce is defined else block['nonce'] }}</div>
+        </div>
+        <hr>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead><tr><th>Sender</th><th>Receiver</th><th>Action</th><th>Timestamp</th></tr></thead>
+            <tbody>
+              {% for tx in (block.transactions if block.transactions is defined else block['transactions']) %}
+              <tr>
+                <td>{{ tx.sender if tx.sender is defined else tx['sender'] }}</td>
+                <td>{{ tx.receiver if tx.receiver is defined else tx['receiver'] }}</td>
+                <td>{{ tx.action if tx.action is defined else tx['action'] }}</td>
+                <td>{{ tx.timestamp if tx.timestamp is defined else tx['timestamp'] }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-center text-muted">No transactions</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">No blocks yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
+
+
