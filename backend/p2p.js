@@ -1,17 +1,17 @@
-import dgram from 'dgram';
+import dgram from 'node:dgram';
 import { Server } from 'socket.io';
-import { createServer } from 'http';
+import { createServer } from 'node:http';
 import { EventEmitter } from 'events';
 
 export class P2PNetwork extends EventEmitter {
-  constructor(port, host = '0.0.0.0') {
+  constructor(port, host = '0.0.0.0', httpServer = null) {
     super();
     this.port = port;
     this.host = host;
     this.peers = new Map();
     this.udpSocket = null;
     this.io = null;
-    this.httpServer = null;
+    this.httpServer = httpServer; // Allow external HTTP server
     this.multicastAddress = '224.0.0.1';
     this.multicastPort = 5000;
     this.bootstrapPeers = [];
@@ -29,6 +29,16 @@ export class P2PNetwork extends EventEmitter {
     await this.startHTTPDiscovery();
     
     console.log(`P2P Network started on ${this.host}:${this.port}`);
+    console.log(`Node ID: ${this.nodeId}`);
+  }
+
+  async startWithExistingServer() {
+    await this.startUDPMulticast();
+    await this.startSocketIOServer();
+    // Skip discovery server for now to avoid port conflicts
+    // await this.startHTTPDiscovery();
+    
+    console.log(`P2P Network attached to existing server on ${this.host}:${this.port}`);
     console.log(`Node ID: ${this.nodeId}`);
   }
 
@@ -58,7 +68,10 @@ export class P2PNetwork extends EventEmitter {
   }
 
   async startSocketIOServer() {
-    this.httpServer = createServer();
+    if (!this.httpServer) {
+      this.httpServer = createServer();
+    }
+    
     this.io = new Server(this.httpServer, {
       cors: {
         origin: "*",
@@ -70,9 +83,14 @@ export class P2PNetwork extends EventEmitter {
       this.handleSocketConnection(socket);
     });
 
-    this.httpServer.listen(this.port, this.host, () => {
-      console.log(`Socket.IO server listening on ${this.host}:${this.port}`);
-    });
+    // Only start listening if we created the server
+    if (!this.httpServer.listening) {
+      this.httpServer.listen(this.port, this.host, () => {
+        console.log(`Socket.IO server listening on ${this.host}:${this.port}`);
+      });
+    } else {
+      console.log(`Socket.IO attached to existing HTTP server on ${this.host}:${this.port}`);
+    }
   }
 
   async startHTTPDiscovery() {

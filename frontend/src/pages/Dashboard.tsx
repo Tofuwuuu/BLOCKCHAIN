@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Table, Badge, Button } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService, DashboardStats, RecentOrder } from '../services/api';
+import { mockDashboardStats } from '../services/mockData';
 import CardStat from '../components/CardStat';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,21 +27,26 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // Try /api/stats first, fallback to /chain
+      // Try /api/stats first, fallback to /chain, then mock data
       let data: DashboardStats;
       try {
         data = await apiService.getDashboardStats();
       } catch (statsError) {
         console.log('Stats endpoint not available, trying chain endpoint...');
-        data = await apiService.getChain();
+        try {
+          data = await apiService.getChain();
+        } catch (chainError) {
+          console.log('Chain endpoint not available, using mock data...');
+          data = mockDashboardStats;
+        }
       }
       
       setStats(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard data';
-      setError(errorMessage);
-      setToastMessage(errorMessage);
-      setToastType('error');
+      console.log('All API endpoints failed, using mock data...');
+      setStats(mockDashboardStats);
+      setToastMessage('Using demo data - backend not available');
+      setToastType('warning');
       setShowToast(true);
     } finally {
       setLoading(false);
@@ -163,7 +171,11 @@ const Dashboard: React.FC = () => {
       <Card>
         <Card.Header className="d-flex justify-content-between align-items-center">
           <h5 className="mb-0">Recent Purchase Orders</h5>
-          <Button variant="primary" size="sm">
+          <Button 
+            variant="primary" 
+            size="sm"
+            onClick={() => navigate('/orders')}
+          >
             <i className="bi bi-plus me-2"></i>
             New Order
           </Button>
@@ -195,7 +207,11 @@ const Dashboard: React.FC = () => {
                         <strong>{formatCurrency(order.total_amount)}</strong>
                       </td>
                       <td>
-                        <Button variant="outline-primary" size="sm">
+                        <Button 
+                          variant="outline-primary" 
+                          size="sm"
+                          onClick={() => navigate(`/orders/${order.id}`)}
+                        >
                           <i className="bi bi-eye me-1"></i>
                           View
                         </Button>

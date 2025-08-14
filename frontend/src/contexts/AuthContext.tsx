@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, apiService } from '../services/api';
+import { mockUser } from '../services/mockData';
 
 interface AuthContextType {
   user: User | null;
@@ -25,12 +26,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const token = localStorage.getItem('authToken');
         if (token) {
-          const userData = await apiService.getCurrentUser();
-          setUser(userData);
+          try {
+            const userData = await apiService.getCurrentUser();
+            setUser(userData);
+          } catch (error) {
+            console.log('Auth API failed, clearing token...');
+            localStorage.removeItem('authToken');
+            setUser(null);
+          }
+        } else {
+          // No token, user is not authenticated
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
         localStorage.removeItem('authToken');
+        setUser(null);
       } finally {
         setLoading(false);
       }

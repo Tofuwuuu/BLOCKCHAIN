@@ -25,10 +25,15 @@
   "author": "Blockchain Developer",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "level": "^8.0.0",
+    "node-fetch": "^3.3.2",
     "socket.io": "^4.7.2",
-    "level": "^8.0.0"
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "eslint": "^8.45.0",

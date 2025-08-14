@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import { EventEmitter } from 'events';
 
 export class Block {
   constructor(index, timestamp, transactions, previousHash = '') {
@@ -30,8 +31,9 @@ export class Block {
   }
 }
 
-export class Blockchain {
+export class Blockchain extends EventEmitter {
   constructor() {
+    super();
     this.chain = [];
     this.pendingTransactions = [];
     this.difficulty = 4;
@@ -60,6 +62,9 @@ export class Blockchain {
     
     console.log('Block successfully mined!');
     this.chain.push(block);
+    
+    // Emit block mined event
+    this.emit('block_mined', block);
 
     // Reset pending transactions and add mining reward
     this.pendingTransactions = [
