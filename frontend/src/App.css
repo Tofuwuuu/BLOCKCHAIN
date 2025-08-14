@@ -65,6 +65,12 @@
   position: relative;
 }
 
+/* Wrapper to limit max width for better readability */
+.ph-login-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
 /* Fix for long vertical text layout */
 .ph-login-card .card-body {
   word-break: normal;
@@ -115,7 +121,7 @@
   position: relative;
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
-  min-width: 400px;
+  min-width: 460px;
   max-width: 100%;
   width: 100%;
 }
@@ -333,6 +339,24 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.9);
+}
+
+/* Input group to align toggle button */
+.ph-input-group .ph-form-control {
+  border-right-width: 0;
+}
+
+.ph-password-toggle {
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  border-color: var(--ph-border);
+  background: var(--ph-white);
+  color: var(--ph-gray);
+}
+
+.ph-password-toggle:hover {
+  background: var(--ph-light-gray);
+  color: var(--ph-dark-blue);
 }
 
 .ph-form-control:focus {

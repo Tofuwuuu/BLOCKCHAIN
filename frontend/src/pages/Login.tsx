@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, InputGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -15,6 +15,7 @@ const Login: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: { username?: string; password?: string } = {};
@@ -51,7 +52,8 @@ const Login: React.FC = () => {
   return (
     <Container className="login-container">
       <Row className="justify-content-center">
-        <Col xs={12} sm={10} md={8} lg={7} xl={6}>
+        <Col xs={12} sm={11} md={10} lg={9} xl={8}>
+          <div className="ph-login-wrapper">
           <Card className="ph-login-card shadow-lg">
             {/* Enhanced Philippine Flag Strip */}
             <div className="ph-flag-strip">
@@ -95,6 +97,7 @@ const Login: React.FC = () => {
                     isInvalid={!!errors.username}
                     aria-describedby="usernameError"
                     disabled={loading}
+                    autoComplete="username"
                     className="ph-form-control"
                   />
                   <Form.Control.Feedback type="invalid" id="usernameError">
@@ -103,26 +106,51 @@ const Login: React.FC = () => {
                   </Form.Control.Feedback>
                 </Form.Group>
 
-                <Form.Group className="mb-4">
+                <Form.Group className="mb-3">
                   <Form.Label htmlFor="password" className="ph-form-label">
                     <i className="bi bi-lock-fill me-2"></i>Password
                   </Form.Label>
-                  <Form.Control
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    isInvalid={!!errors.password}
-                    aria-describedby="passwordError"
-                    disabled={loading}
-                    className="ph-form-control"
-                  />
+                  <InputGroup className="ph-input-group">
+                    <Form.Control
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      isInvalid={!!errors.password}
+                      aria-describedby="passwordError"
+                      disabled={loading}
+                      autoComplete="current-password"
+                      className="ph-form-control"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline-secondary"
+                      className="ph-password-toggle"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      disabled={loading}
+                    >
+                      <i className={showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'}></i>
+                    </Button>
+                  </InputGroup>
                   <Form.Control.Feedback type="invalid" id="passwordError">
                     <i className="bi bi-exclamation-circle me-1"></i>
                     {errors.password}
                   </Form.Control.Feedback>
                 </Form.Group>
+
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <Form.Check
+                    type="checkbox"
+                    id="remember"
+                    label="Remember me"
+                    disabled={loading}
+                  />
+                  <Button variant="link" className="p-0 text-decoration-none" disabled>
+                    Forgot password?
+                  </Button>
+                </div>
 
                 <div className="d-grid">
                   <Button 
@@ -148,6 +176,7 @@ const Login: React.FC = () => {
               </Form>
             </Card.Body>
           </Card>
+          </div>
 
           {/* Enhanced Footer Info */}
           <div className="text-center mt-4 ph-footer-info">
