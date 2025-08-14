@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, apiService } from '../services/api';
-import { mockUser } from '../services/mockData';
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +26,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = localStorage.getItem('authToken');
         if (token) {
           try {
+            // Try to get current user from API
             const userData = await apiService.getCurrentUser();
             setUser(userData);
           } catch (error) {
@@ -52,22 +52,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string) => {
     try {
+      // Call the backend login endpoint
       const response = await apiService.login({ username, password });
+      
+      // Store the token
       localStorage.setItem('authToken', response.token);
+      
+      // Set the user data
       setUser(response.user);
+      
+      console.log('Login successful:', response.user.username);
     } catch (error) {
-      throw error;
+      console.error('Login failed:', error);
+      throw error; // Re-throw to let the component handle the error
     }
   };
 
   const logout = async () => {
     try {
+      // Call the backend logout endpoint
       await apiService.logout();
     } catch (error) {
       console.error('Logout error:', error);
+      // Continue with logout even if API call fails
     } finally {
+      // Always clear local storage and user state
       localStorage.removeItem('authToken');
       setUser(null);
+      console.log('Logout completed');
     }
   };
 

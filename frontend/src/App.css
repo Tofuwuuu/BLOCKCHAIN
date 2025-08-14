@@ -60,15 +60,34 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
+  justify-content: center;
   background: linear-gradient(135deg, var(--ph-light-blue) 0%, var(--ph-light-red) 100%);
   padding: 2rem 0;
   position: relative;
 }
 
+.login-container .container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Wrapper to limit max width for better readability */
 .ph-login-wrapper {
-  max-width: 680px;
-  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Ensure the row and column are centered */
+.login-container .row {
+  width: 100%;
+  justify-content: center;
+}
+
+.login-container .col {
+  display: flex;
+  justify-content: center;
 }
 
 /* Fix for long vertical text layout */
@@ -84,6 +103,8 @@
   }
 }
 
+.ph-login-card h1,
+.ph-login-card h2,
 .ph-login-card h4,
 .ph-login-card h5,
 .ph-login-card p {
@@ -121,9 +142,8 @@
   position: relative;
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
-  min-width: 460px;
-  max-width: 100%;
   width: 100%;
+  max-width: 500px;
 }
 
 .ph-flag-strip {
@@ -622,6 +642,16 @@ footer a:hover {
     padding: 1rem 2rem;
     font-size: 1rem;
   }
+  
+  .ph-login-wrapper {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+  
+  .ph-login-card {
+    max-width: 100%;
+    margin: 0 1rem;
+  }
 }
 
 /* Enhanced form validation styling */
@@ -751,4 +781,78 @@ footer a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ph-dark-blue);
+}
+
+/* ===== ENHANCED LOGIN FORM STYLES ===== */
+.ph-form-control {
+  border: 2px solid var(--ph-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.ph-form-control:focus {
+  border-color: var(--ph-blue);
+  box-shadow: 0 0 0 0.2rem rgba(0, 56, 168, 0.25);
+}
+
+.ph-form-control.is-invalid {
+  border-color: var(--ph-red);
+}
+
+.ph-form-label {
+  font-weight: 600;
+  color: var(--ph-dark-blue);
+  margin-bottom: 8px;
+}
+
+.ph-input-group {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ph-password-toggle {
+  border-left: 1px solid var(--ph-border);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+}
+
+.ph-password-toggle:hover {
+  background-color: var(--ph-light-gray);
+}
+
+.ph-checkbox {
+  font-weight: 500;
+  color: var(--ph-dark-blue);
+}
+
+.ph-link {
+  color: var(--ph-blue);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.ph-link:hover {
+  color: var(--ph-dark-blue);
+  text-decoration: underline !important;
+}
+
+.ph-footer-info {
+  color: var(--ph-gray);
+  font-size: 14px;
+}
+
+.ph-footer-info i {
+  color: var(--ph-blue);
+}
+
+/* Demo credentials styling */
+.ph-login-card code {
+  background-color: var(--ph-light-gray);
+  color: var(--ph-dark-blue);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
 }

@@ -282,108 +282,181 @@ export interface CreateTransactionData {
   data?: any;
 }
 
-// ===== LEGACY API ENDPOINTS (for backward compatibility) =====
+// ===== API SERVICE =====
 
-export const legacyApiService = {
+export const apiService = {
   // ===== AUTHENTICATION =====
-  login: (credentials: { username: string; password: string }) =>
-    api.post('/api/auth/login', credentials).then(response => response.data),
+  login: async (credentials: { username: string; password: string }) => {
+    try {
+      const response = await api.post('/api/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      console.error('Login API error:', error);
+      throw error;
+    }
+  },
   
-  logout: () =>
-    api.post('/api/auth/logout').then(response => response.data),
+  logout: async () => {
+    try {
+      const response = await api.post('/api/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('Logout API error:', error);
+      throw error;
+    }
+  },
   
-  getCurrentUser: (): Promise<User> =>
-    api.get('/api/auth/me').then(response => response.data),
+  getCurrentUser: async (): Promise<User> => {
+    try {
+      const response = await api.get('/api/auth/me');
+      return response.data;
+    } catch (error) {
+      console.error('Get current user API error:', error);
+      throw error;
+    }
+  },
 
   // ===== DASHBOARD =====
-  getDashboardStats: (): Promise<DashboardStats> => 
-    api.get('/api/stats').then(response => response.data),
+  getDashboardStats: async (): Promise<DashboardStats> => {
+    const response = await api.get('/api/stats');
+    return response.data;
+  },
   
-  getChain: (): Promise<DashboardStats> => 
-    api.get('/chain').then(response => response.data),
+  getChain: async (): Promise<DashboardStats> => {
+    const response = await api.get('/chain');
+    return response.data;
+  },
 
   // ===== BLOCKCHAIN =====
-  getBlockchain: (): Promise<Chain> =>
-    api.get('/chain').then(response => response.data),
+  getBlockchain: async (): Promise<Chain> => {
+    const response = await api.get('/chain');
+    return response.data;
+  },
 
-  getBlock: (index: number): Promise<Block> =>
-    api.get(`/chain/block/${index}`).then(response => response.data),
+  getBlock: async (index: number): Promise<Block> => {
+    const response = await api.get(`/chain/block/${index}`);
+    return response.data;
+  },
 
-  createTransaction: (data: CreateTransactionData): Promise<Transaction> =>
-    api.post('/transactions/new', data).then(response => response.data),
+  createTransaction: async (data: CreateTransactionData): Promise<Transaction> => {
+    const response = await api.post('/transactions/new', data);
+    return response.data;
+  },
 
-  mineBlock: (): Promise<Block> =>
-    api.get('/mine').then(response => response.data),
+  mineBlock: async (): Promise<Block> => {
+    const response = await api.get('/mine');
+    return response.data;
+  },
 
   // ===== PEERS =====
-  getPeers: (): Promise<Peer[]> =>
-    api.get('/peers').then(response => response.data),
+  getPeers: async (): Promise<Peer[]> => {
+    const response = await api.get('/peers');
+    return response.data;
+  },
 
-  addPeer: (url: string): Promise<Peer> =>
-    api.post('/add_peer', { url }).then(response => response.data),
+  addPeer: async (url: string): Promise<Peer> => {
+    const response = await api.post('/add_peer', { url });
+    return response.data;
+  },
 
   // ===== SUPPLIERS =====
-  getSuppliers: (): Promise<Supplier[]> =>
-    api.get('/api/suppliers').then(response => response.data),
+  getSuppliers: async (): Promise<Supplier[]> => {
+    const response = await api.get('/api/suppliers');
+    return response.data;
+  },
 
-  getSupplier: (id: number): Promise<Supplier> =>
-    api.get(`/api/suppliers/${id}`).then(response => response.data),
+  getSupplier: async (id: number): Promise<Supplier> => {
+    const response = await api.get(`/api/suppliers/${id}`);
+    return response.data;
+  },
 
-  createSupplier: (data: CreateSupplierData): Promise<Supplier> =>
-    api.post('/api/suppliers', data).then(response => response.data),
+  createSupplier: async (data: CreateSupplierData): Promise<Supplier> => {
+    const response = await api.post('/api/suppliers', data);
+    return response.data;
+  },
 
-  updateSupplier: (id: number, data: Partial<CreateSupplierData>): Promise<Supplier> =>
-    api.put(`/api/suppliers/${id}`, data).then(response => response.data),
+  updateSupplier: async (id: number, data: Partial<CreateSupplierData>): Promise<Supplier> => {
+    const response = await api.put(`/api/suppliers/${id}`, data);
+    return response.data;
+  },
 
-  deleteSupplier: (id: number): Promise<void> =>
-    api.delete(`/api/suppliers/${id}`).then(response => response.data),
+  deleteSupplier: async (id: number): Promise<void> => {
+    const response = await api.delete(`/api/suppliers/${id}`);
+    return response.data;
+  },
 
   // ===== PURCHASE ORDERS =====
-  getOrders: (): Promise<PurchaseOrder[]> =>
-    api.get('/api/orders').then(response => response.data),
+  getOrders: async (): Promise<PurchaseOrder[]> => {
+    const response = await api.get('/api/orders');
+    return response.data;
+  },
 
-  getOrder: (id: number): Promise<PurchaseOrder> =>
-    api.get(`/api/orders/${id}`).then(response => response.data),
+  getOrder: async (id: number): Promise<PurchaseOrder> => {
+    const response = await api.get(`/api/orders/${id}`);
+    return response.data;
+  },
 
-  createOrder: (data: CreateOrderData): Promise<PurchaseOrder> =>
-    api.post('/api/orders', data).then(response => response.data),
+  createOrder: async (data: CreateOrderData): Promise<PurchaseOrder> => {
+    const response = await api.post('/api/orders', data);
+    return response.data;
+  },
 
-  updateOrder: (id: number, data: Partial<CreateOrderData>): Promise<PurchaseOrder> =>
-    api.put(`/api/orders/${id}`, data).then(response => response.data),
+  updateOrder: async (id: number, data: Partial<CreateOrderData>): Promise<PurchaseOrder> => {
+    const response = await api.put(`/api/orders/${id}`, data);
+    return response.data;
+  },
 
-  deleteOrder: (id: number): Promise<void> =>
-    api.delete(`/api/orders/${id}`).then(response => response.data),
+  deleteOrder: async (id: number): Promise<void> => {
+    const response = await api.delete(`/api/orders/${id}`);
+    return response.data;
+  },
 
-  approveOrder: (id: number): Promise<PurchaseOrder> =>
-    api.post(`/api/orders/${id}/approve`).then(response => response.data),
+  approveOrder: async (id: number): Promise<PurchaseOrder> => {
+    const response = await api.post(`/api/orders/${id}/approve`);
+    return response.data;
+  },
 
   // ===== INVENTORY =====
-  getInventory: (): Promise<Inventory[]> =>
-    api.get('/api/inventory').then(response => response.data),
+  getInventory: async (): Promise<Inventory[]> => {
+    const response = await api.get('/api/inventory');
+    return response.data;
+  },
 
-  getInventoryItem: (id: number): Promise<Inventory> =>
-    api.get(`/api/inventory/${id}`).then(response => response.data),
+  getInventoryItem: async (id: number): Promise<Inventory> => {
+    const response = await api.get(`/api/inventory/${id}`);
+    return response.data;
+  },
 
-  adjustInventory: (data: { product_id: number; adjustment: number; reason: string }): Promise<InventoryAdjustment> =>
-    api.post('/api/inventory/adjust', data).then(response => response.data),
+  adjustInventory: async (data: { product_id: number; adjustment: number; reason: string }): Promise<InventoryAdjustment> => {
+    const response = await api.post('/api/inventory/adjust', data);
+    return response.data;
+  },
 
   // ===== PRODUCTS =====
-  getProducts: (): Promise<Product[]> =>
-    api.get('/api/products').then(response => response.data),
+  getProducts: async (): Promise<Product[]> => {
+    const response = await api.get('/api/products');
+    return response.data;
+  },
 
-  getProduct: (id: number): Promise<Product> =>
-    api.get(`/api/products/${id}`).then(response => response.data),
+  getProduct: async (id: number): Promise<Product> => {
+    const response = await api.get(`/api/products/${id}`);
+    return response.data;
+  },
 
-  createProduct: (data: Omit<Product, 'id'>): Promise<Product> =>
-    api.post('/api/products', data).then(response => response.data),
+  createProduct: async (data: Omit<Product, 'id'>): Promise<Product> => {
+    const response = await api.post('/api/products', data);
+    return response.data;
+  },
 
-  updateProduct: (id: number, data: Partial<Product>): Promise<Product> =>
-    api.put(`/api/products/${id}`, data).then(response => response.data),
+  updateProduct: async (id: number, data: Partial<Product>): Promise<Product> => {
+    const response = await api.put(`/api/products/${id}`, data);
+    return response.data;
+  },
 
-  deleteProduct: (id: number): Promise<void> =>
-    api.delete(`/api/products/${id}`).then(response => response.data),
+  deleteProduct: async (id: number): Promise<void> => {
+    const response = await api.delete(`/api/products/${id}`);
+    return response.data;
+  },
 };
 
-// Export both new and legacy services for backward compatibility
-export { legacyApiService as apiService };
 export default api;
