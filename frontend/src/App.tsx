@@ -144,6 +144,17 @@ function App() {
         />
 
         <Route
+          path="/purchase-requests"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Orders />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/orders/:id"
           element={
             <ProtectedRoute>
@@ -196,6 +207,28 @@ function App() {
                 <ItemManagement />
               </Layout>
             </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/item-proposal"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ItemManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/pending-items"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ItemManagement />
+              </Layout>
+            </ProtectedRoute>
           }
         />
 
