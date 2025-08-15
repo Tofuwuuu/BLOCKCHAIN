@@ -298,6 +298,21 @@ const Blockchain: React.FC = () => {
     fetchBlockchainData();
   }, []);
 
+  // Load peers from localStorage when in demo mode
+  useEffect(() => {
+    if (usingRealData) {
+      const savedPeers = localStorage.getItem('blockchain_demo_peers');
+      if (savedPeers) {
+        try {
+          const parsedPeers = JSON.parse(savedPeers);
+          setPeers(parsedPeers);
+        } catch (error) {
+          console.error('Failed to parse saved peers:', error);
+        }
+      }
+    }
+  }, [usingRealData]);
+
   const fetchBlockchainData = async () => {
     try {
       setLoading(true);
@@ -326,29 +341,50 @@ const Blockchain: React.FC = () => {
           setToastType('success');
           setShowToast(true);
         }
-      } catch (apiError) {
-        console.log('API not available, using realistic blockchain data...');
-        // Use realistic data if API fails
-        setBlocks(realisticBlocks);
-        setPeers(realisticPeers);
+             } catch (apiError) {
+         console.log('API not available, using realistic blockchain data...');
+         // Use realistic data if API fails
+         setBlocks(realisticBlocks);
+         
+         // Load saved peers or use default realistic peers
+         const savedPeers = localStorage.getItem('blockchain_demo_peers');
+        if (savedPeers) {
+          try {
+            const parsedPeers = JSON.parse(savedPeers);
+            setPeers(parsedPeers);
+          } catch (error) {
+            setPeers(realisticPeers);
+          }
+        } else {
+          setPeers(realisticPeers);
+        }
+        
         setUsingRealData(true);
         
-        // Show info toast
-        setToastMessage('Using realistic blockchain data - backend not available');
-        setToastType('info');
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error('Failed to fetch blockchain data:', error);
-      // Fallback to realistic data
-      setBlocks(realisticBlocks);
-      setPeers(realisticPeers);
-      setUsingRealData(true);
-      
-      setToastMessage('Failed to load blockchain data, using realistic data');
-      setToastType('warning');
-      setShowToast(true);
-    } finally {
+        // No notification needed for realistic data fallback
+       }
+           } catch (error) {
+         console.error('Failed to fetch blockchain data:', error);
+         // Fallback to realistic data
+         setBlocks(realisticBlocks);
+         
+         // Load saved peers or use default realistic peers
+         const savedPeers = localStorage.getItem('blockchain_demo_peers');
+         if (savedPeers) {
+           try {
+             const parsedPeers = JSON.parse(savedPeers);
+             setPeers(parsedPeers);
+           } catch (error) {
+             setPeers(realisticPeers);
+           }
+         } else {
+           setPeers(realisticPeers);
+         }
+         
+         setUsingRealData(true);
+         
+         // No notification needed for fallback data
+       } finally {
       setLoading(false);
     }
   };
@@ -467,21 +503,26 @@ const Blockchain: React.FC = () => {
     if (!newPeerUrl.trim()) return;
 
     try {
-      if (usingRealData) {
-        // Simulate adding peer for realistic data
-        const newPeer: Peer = {
-          id: `node-${String(peers.length + 1).padStart(3, '0')}`,
-          url: newPeerUrl,
-          is_active: true
-        };
-        
-        setPeers([...peers, newPeer]);
-        setToastMessage('Peer added successfully (Demo)');
-        setToastType('success');
-        setShowToast(true);
-        setShowAddPeer(false);
-        setNewPeerUrl('');
-      } else {
+             if (usingRealData) {
+         // Simulate adding peer for realistic data
+         const newPeer: Peer = {
+           id: `node-${String(peers.length + 1).padStart(3, '0')}`,
+           url: newPeerUrl,
+           is_active: true
+         };
+         
+         const updatedPeers = [...peers, newPeer];
+         setPeers(updatedPeers);
+         
+         // Save to localStorage for persistence
+         localStorage.setItem('blockchain_demo_peers', JSON.stringify(updatedPeers));
+         
+         setToastMessage('Peer added successfully (Demo)');
+         setToastType('success');
+         setShowToast(true);
+         setShowAddPeer(false);
+         setNewPeerUrl('');
+       } else {
         // Real API call
         await apiService.addPeer(newPeerUrl);
         setToastMessage('Peer added successfully');
@@ -532,6 +573,14 @@ const Blockchain: React.FC = () => {
     return JSON.stringify(data, null, 2);
   };
 
+  const clearDemoData = () => {
+    localStorage.removeItem('blockchain_demo_peers');
+    setPeers(realisticPeers);
+    setToastMessage('Demo data cleared');
+    setToastType('info');
+    setShowToast(true);
+  };
+
   if (loading) {
     return (
       <Container>
@@ -576,14 +625,25 @@ const Blockchain: React.FC = () => {
                   )}
                 </Button>
               )}
-              <Button 
-                variant="outline-primary" 
-                onClick={() => setShowAddPeer(true)}
-                aria-label="Add new peer"
-              >
-                <i className="bi bi-plus-circle me-2"></i>
-                Add Peer
-              </Button>
+                             <Button 
+                 variant="outline-primary" 
+                 onClick={() => setShowAddPeer(true)}
+                 aria-label="Add new peer"
+               >
+                 <i className="bi bi-plus-circle me-2"></i>
+                 Add Peer
+               </Button>
+               {usingRealData && (
+                 <Button 
+                   variant="outline-secondary" 
+                   onClick={clearDemoData}
+                   aria-label="Clear demo data"
+                   size="sm"
+                 >
+                   <i className="bi bi-trash me-2"></i>
+                   Clear Demo
+                 </Button>
+               )}
             </div>
           </div>
         </Col>

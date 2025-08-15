@@ -41,7 +41,24 @@ const Inventory: React.FC = () => {
         apiService.getInventory(),
         apiService.getProducts()
       ]);
-      setInventory(inventoryData);
+      
+      // Transform inventory data to match frontend expectations
+      const transformedInventory = inventoryData.map((item: any) => ({
+        id: item.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_value: item.total_value,
+        last_updated: item.last_updated,
+        product: {
+          name: item.product_name,
+          description: item.product_description,
+          unit: item.product_unit,
+          category: item.product_category
+        }
+      }));
+      
+      setInventory(transformedInventory);
       setProducts(productsData);
     } catch (error) {
       console.error('Failed to fetch inventory data:', error);

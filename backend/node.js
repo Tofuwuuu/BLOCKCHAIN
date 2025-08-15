@@ -379,24 +379,9 @@ export class BlockchainNode {
     });
 
     // Inventory endpoints
-    this.app.get('/api/inventory', (req, res) => {
+    this.app.get('/api/inventory', async (req, res) => {
       try {
-        const inventory = this.blockchain.chain.flatMap(block => 
-          block.transactions.filter(tx => tx.action === 'inventory_adjusted')
-        ).map(tx => ({
-          id: tx.hash.substring(0, 8),
-          product_id: tx.data?.product_id || 1,
-          product: { 
-            name: tx.data?.product_name || 'Unknown Product',
-            unit: tx.data?.unit || 'pcs',
-            unit_price: tx.data?.unit_price || 0
-          },
-          quantity: tx.data?.adjustment || 0,
-          unit_price: tx.data?.unit_price || 0,
-          total_value: (tx.data?.adjustment || 0) * (tx.data?.unit_price || 0),
-          last_updated: new Date(tx.timestamp).toISOString()
-        }));
-        
+        const inventory = await this.database.getAllInventory();
         res.json(inventory);
       } catch (error) {
         console.error('Error getting inventory:', error);
@@ -404,24 +389,96 @@ export class BlockchainNode {
       }
     });
 
-    // Products endpoints
-    this.app.get('/api/products', (req, res) => {
+    this.app.post('/api/inventory/adjust', async (req, res) => {
       try {
-        const products = this.blockchain.chain.flatMap(block => 
-          block.transactions.filter(tx => tx.action === 'product_created')
-        ).map(tx => ({
-          id: tx.data?.product_id || tx.hash.substring(0, 8),
-          name: tx.data?.name || 'Unknown Product',
-          description: tx.data?.description || '',
-          unit: tx.data?.unit || 'pcs',
-          unit_price: tx.data?.unit_price || 0,
-          category: tx.data?.category || 'General',
-          is_active: true
-        }));
+        const { product_id, adjustment, reason } = req.body;
+        const userId = req.user?.id || 1; // Default to admin if no user context
+
+        if (!product_id || adjustment === undefined || !reason) {
+          return res.status(400).json({ error: 'Product ID, adjustment, and reason are required' });
+        }
+
+        const updatedInventory = await this.database.adjustInventory(product_id, adjustment, reason, userId);
         
+        // Create blockchain transaction for audit trail
+        const transaction = {
+          from: req.user?.username || 'system',
+          to: 'blockchain',
+          amount: 0,
+          action: 'inventory_adjusted',
+          data: {
+            product_id: product_id,
+            product_name: updatedInventory.product_name,
+            adjustment: adjustment,
+            reason: reason,
+            previous_quantity: updatedInventory.quantity - adjustment,
+            new_quantity: updatedInventory.quantity,
+            adjusted_by: req.user?.username || 'system'
+          }
+        };
+
+        this.blockchain.addTransaction(transaction);
+        
+        res.json(updatedInventory);
+      } catch (error) {
+        console.error('Error adjusting inventory:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Products endpoints
+    this.app.get('/api/products', async (req, res) => {
+      try {
+        const products = await this.database.getAllProducts();
         res.json(products);
       } catch (error) {
         console.error('Error getting products:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/products', async (req, res) => {
+      try {
+        const { name, description, unit, unit_price, category } = req.body;
+        
+        if (!name || !unit_price) {
+          return res.status(400).json({ error: 'Product name and unit price are required' });
+        }
+
+        const productData = {
+          name,
+          description: description || '',
+          unit: unit || 'pcs',
+          unit_price: parseFloat(unit_price),
+          category: category || 'General'
+        };
+
+        const newProduct = await this.database.createProduct(productData);
+        
+        // Add to inventory with 0 quantity
+        await this.database.addProductToInventory(newProduct.id, 0);
+        
+        // Create blockchain transaction
+        const transaction = {
+          from: req.user?.username || 'system',
+          to: 'blockchain',
+          amount: 0,
+          action: 'product_created',
+          data: {
+            product_id: newProduct.id,
+            name: newProduct.name,
+            description: newProduct.description,
+            unit: newProduct.unit,
+            unit_price: newProduct.unit_price,
+            category: newProduct.category
+          }
+        };
+
+        this.blockchain.addTransaction(transaction);
+        
+        res.json(newProduct);
+      } catch (error) {
+        console.error('Error creating product:', error);
         res.status(500).json({ error: error.message });
       }
     });
