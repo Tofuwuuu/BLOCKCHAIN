@@ -8,11 +8,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Debug: Log user object to see what's available
-  console.log('🔍 Layout - User object:', user);
-  console.log('🔍 Layout - User role:', user?.role);
-  console.log('🔍 Layout - Is procurement?', user?.role === 'procurement');
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -40,22 +35,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           aria-label="Main navigation"
         >
           <Container>
-                         <Navbar.Brand as={Link} to="/dashboard" className="d-flex align-items-center">
-               <i className="bi bi-shield-check me-2"></i>
-               <span>Philippine Procurement Solutions</span>
-             </Navbar.Brand>
-             
-             {/* Debug: Show user role for troubleshooting */}
-             {user && (
-               <div className="text-white me-3">
-                 <small>Debug: Role = {user.role}</small>
-               </div>
-             )}
+            <Navbar.Brand as={Link} to="/dashboard" className="d-flex align-items-center">
+              <i className="bi bi-shield-check me-2"></i>
+              <span>Philippine Procurement Solutions</span>
+            </Navbar.Brand>
             
             <Navbar.Toggle aria-controls="main-nav" />
             
             <Navbar.Collapse id="main-nav">
               <Nav className="me-auto" role="navigation" aria-label="Primary navigation">
+                {/* Dashboard - Available to all authenticated users */}
                 <Nav.Link 
                   as={Link} 
                   to="/dashboard" 
@@ -66,8 +55,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   Dashboard
                 </Nav.Link>
                 
-                                 {/* Procurement-specific navigation */}
-                 {(user?.role === 'procurement' || user?.role === 'procurement0') && (
+                {/* Procurement-specific navigation - Only for procurement users */}
+                {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
                   <>
                     <Nav.Link 
                       as={Link} 
@@ -121,9 +110,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   </>
                 )}
                 
-                {/* Admin access to all features */}
+                {/* ADMIN-ONLY Navigation Items */}
                 {user?.is_admin && (
                   <>
+                    {/* User Management - Admin Only */}
+                    <Nav.Link 
+                      as={Link} 
+                      to="/users" 
+                      active={isActive('/users')}
+                      className="d-flex align-items-center"
+                    >
+                      <i className="bi bi-people me-2"></i>
+                      User Management
+                    </Nav.Link>
+                    
+                    {/* Item Management - Admin Only */}
+                    <Nav.Link 
+                      as={Link} 
+                      to="/item-management" 
+                      active={isActive('/item-management')}
+                      className="d-flex align-items-center"
+                    >
+                      <i className="bi bi-box-seam me-2"></i>
+                      Item Management
+                    </Nav.Link>
+                    
+                    {/* Purchase Orders - Admin Only */}
                     <Nav.Link 
                       as={Link} 
                       to="/orders" 
@@ -134,6 +146,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       Purchase Orders
                     </Nav.Link>
                     
+                    {/* Suppliers - Admin Only */}
                     <Nav.Link 
                       as={Link} 
                       to="/suppliers" 
@@ -144,6 +157,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       Suppliers
                     </Nav.Link>
                     
+                    {/* Inventory - Admin Only */}
                     <Nav.Link 
                       as={Link} 
                       to="/inventory" 
@@ -154,6 +168,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       Inventory
                     </Nav.Link>
                     
+                    {/* Blockchain - Admin Only */}
                     <Nav.Link 
                       as={Link} 
                       to="/blockchain" 
@@ -163,11 +178,22 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       <i className="bi bi-link-45deg me-2"></i>
                       Blockchain
                     </Nav.Link>
+                    
+                    {/* Audit Logs - Admin Only */}
+                    <Nav.Link 
+                      as={Link} 
+                      to="/audit-logs" 
+                      active={isActive('/audit-logs')}
+                      className="d-flex align-items-center"
+                    >
+                      <i className="bi bi-clock-history me-2"></i>
+                      Audit Logs
+                    </Nav.Link>
                   </>
                 )}
                 
                 {/* Validator role - blockchain consensus operations */}
-                {user?.role === 'validator' && (
+                {user?.role === 'validator' && !user?.is_admin && (
                   <Nav.Link 
                     as={Link} 
                     to="/blockchain" 
@@ -180,7 +206,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 )}
                 
                 {/* Auditor role - read-only access to reports and blockchain */}
-                {user?.role === 'auditor' && (
+                {user?.role === 'auditor' && !user?.is_admin && (
                   <>
                     <Nav.Link 
                       as={Link} 
@@ -195,7 +221,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 )}
                 
                 {/* Finance role - financial operations and reports */}
-                {user?.role === 'finance' && (
+                {user?.role === 'finance' && !user?.is_admin && (
                   <>
                     <Nav.Link 
                       as={Link} 
@@ -219,19 +245,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   </>
                 )}
                 
-                {user?.is_admin && (
-                  <Nav.Link 
-                    as={Link} 
-                    to="/users" 
-                    active={isActive('/users')}
-                    className="d-flex align-items-center"
-                  >
-                    <i className="bi bi-people me-2"></i>
-                    Users
-                  </Nav.Link>
-                )}
-                
-                {/* Reports dropdown - role-based access */}
+                {/* Reports dropdown - Admin gets full access, others get role-based access */}
                 <Dropdown as={Nav.Item} className="d-flex align-items-center">
                   <Dropdown.Toggle 
                     as={Nav.Link} 
@@ -241,71 +255,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     Reports
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
-                                         {/* Procurement role - procurement-focused reports */}
-                     {(user?.role === 'procurement' || user?.role === 'procurement0') && (
-                       <>
-                         <Dropdown.Item as={Link} to="/reports/item-proposals">
-                           <i className="bi bi-plus-circle me-2"></i>
-                           Item Proposal Reports
-                         </Dropdown.Item>
-                         <Dropdown.Item as={Link} to="/reports/pending-items">
-                           <i className="bi bi-clock me-2"></i>
-                           Pending Items Reports
-                         </Dropdown.Item>
-                         <Dropdown.Item as={Link} to="/reports/purchase-requests">
-                           <i className="bi bi-file-earmark-text me-2"></i>
-                           Purchase Request Reports
-                         </Dropdown.Item>
-                         <Dropdown.Item as={Link} to="/reports/suppliers">
-                           <i className="bi bi-building me-2"></i>
-                           Supplier Reports
-                         </Dropdown.Item>
-                         <Dropdown.Item as={Link} to="/reports/blockchain">
-                           <i className="bi bi-link-45deg me-2"></i>
-                           Blockchain Transaction Reports
-                         </Dropdown.Item>
-                       </>
-                     )}
-                    
-                    {/* Finance role - financial reports */}
-                    {user?.role === 'finance' && (
+                    {/* Admin role - ALL REPORTS ACCESS */}
+                    {user?.is_admin && (
                       <>
-                        <Dropdown.Item as={Link} to="/reports/bir">
-                          <i className="bi bi-file-earmark-text me-2"></i>
-                          BIR Reports
-                        </Dropdown.Item>
                         <Dropdown.Item as={Link} to="/reports/financial">
                           <i className="bi bi-cash-stack me-2"></i>
                           Financial Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/orders">
+                        <Dropdown.Item as={Link} to="/reports/procurement">
                           <i className="bi bi-cart me-2"></i>
-                          Order Reports
-                        </Dropdown.Item>
-                      </>
-                    )}
-                    
-                    {/* Auditor role - audit and compliance reports */}
-                    {user?.role === 'auditor' && (
-                      <>
-                        <Dropdown.Item as={Link} to="/reports/audit">
-                          <i className="bi bi-clock-history me-2"></i>
-                          Audit Trail
-                        </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/compliance">
-                          <i className="bi bi-shield-check me-2"></i>
-                          Compliance Reports
+                          Procurement Reports
                         </Dropdown.Item>
                         <Dropdown.Item as={Link} to="/reports/blockchain">
                           <i className="bi bi-link-45deg me-2"></i>
-                          Blockchain Reports
+                          Blockchain Transaction Reports
                         </Dropdown.Item>
-                      </>
-                    )}
-                    
-                    {/* Admin role - all reports */}
-                    {user?.is_admin && (
-                      <>
                         <Dropdown.Item as={Link} to="/reports/audit">
                           <i className="bi bi-clock-history me-2"></i>
                           Audit Trail
@@ -322,10 +286,76 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                           <i className="bi bi-cart me-2"></i>
                           Order Reports
                         </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/suppliers">
+                          <i className="bi bi-building me-2"></i>
+                          Supplier Reports
+                        </Dropdown.Item>
                         <Dropdown.Divider />
                         <Dropdown.Item as={Link} to="/reports/system">
                           <i className="bi bi-gear me-2"></i>
                           System Reports
+                        </Dropdown.Item>
+                      </>
+                    )}
+                    
+                    {/* Procurement role - procurement-focused reports (non-admin) */}
+                    {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
+                      <>
+                        <Dropdown.Item as={Link} to="/reports/item-proposals">
+                          <i className="bi bi-plus-circle me-2"></i>
+                          Item Proposal Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/pending-items">
+                          <i className="bi bi-clock me-2"></i>
+                          Pending Items Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/purchase-requests">
+                          <i className="bi bi-file-earmark-text me-2"></i>
+                          Purchase Request Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/suppliers">
+                          <i className="bi bi-building me-2"></i>
+                          Supplier Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/blockchain">
+                          <i className="bi bi-link-45deg me-2"></i>
+                          Blockchain Transaction Reports
+                        </Dropdown.Item>
+                      </>
+                    )}
+                    
+                    {/* Finance role - financial reports (non-admin) */}
+                    {user?.role === 'finance' && !user?.is_admin && (
+                      <>
+                        <Dropdown.Item as={Link} to="/reports/bir">
+                          <i className="bi bi-file-earmark-text me-2"></i>
+                          BIR Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/financial">
+                          <i className="bi bi-cash-stack me-2"></i>
+                          Financial Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/orders">
+                          <i className="bi bi-cart me-2"></i>
+                          Order Reports
+                        </Dropdown.Item>
+                      </>
+                    )}
+                    
+                    {/* Auditor role - audit and compliance reports (non-admin) */}
+                    {user?.role === 'auditor' && !user?.is_admin && (
+                      <>
+                        <Dropdown.Item as={Link} to="/reports/audit">
+                          <i className="bi bi-clock-history me-2"></i>
+                          Audit Trail
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/compliance">
+                          <i className="bi bi-shield-check me-2"></i>
+                          Compliance Reports
+                        </Dropdown.Item>
+                        <Dropdown.Item as={Link} to="/reports/blockchain">
+                          <i className="bi bi-link-45deg me-2"></i>
+                          Blockchain Reports
                         </Dropdown.Item>
                       </>
                     )}
@@ -340,23 +370,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     className="d-flex align-items-center"
                   >
                     <i className="bi bi-person-circle me-2"></i>
-                    <span>{user?.full_name || 'User'}</span>
+                    <span>{user?.username || 'User'}</span>
                     {user?.is_admin && (
                       <Badge bg="warning" className="ms-2">Admin</Badge>
                     )}
-                    {user?.role === 'procurement' && (
+                    {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
                       <Badge bg="primary" className="ms-2">Procurement</Badge>
                     )}
-                    {user?.role === 'validator' && (
+                    {user?.role === 'validator' && !user?.is_admin && (
                       <Badge bg="warning" className="ms-2">Validator</Badge>
                     )}
-                    {user?.role === 'auditor' && (
+                    {user?.role === 'auditor' && !user?.is_admin && (
                       <Badge bg="secondary" className="ms-2">Auditor</Badge>
                     )}
-                    {user?.role === 'finance' && (
+                    {user?.role === 'finance' && !user?.is_admin && (
                       <Badge bg="success" className="ms-2">Finance</Badge>
                     )}
-                    {user?.role === 'supplier' && (
+                    {user?.role === 'supplier' && !user?.is_admin && (
                       <Badge bg="info" className="ms-2">Supplier</Badge>
                     )}
                   </Dropdown.Toggle>
@@ -365,18 +395,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       <i className="bi bi-person me-2"></i>
                       Profile
                     </Dropdown.Item>
+                    
+                    {/* Settings - Admin Only */}
                     {user?.is_admin && (
                       <Dropdown.Item as={Link} to="/settings">
                         <i className="bi bi-gear me-2"></i>
-                        Settings
+                        System Settings
                       </Dropdown.Item>
                     )}
-                                         {(user?.role === 'procurement' || user?.role === 'procurement0') && (
-                       <Dropdown.Item as={Link} to="/procurement-settings">
-                         <i className="bi bi-gear me-2"></i>
-                         Procurement Settings
-                       </Dropdown.Item>
-                     )}
+                    
+                    {/* Procurement Settings - Procurement users only (non-admin) */}
+                    {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
+                      <Dropdown.Item as={Link} to="/procurement-settings">
+                        <i className="bi bi-gear me-2"></i>
+                        Procurement Settings
+                      </Dropdown.Item>
+                    )}
+                    
                     <Dropdown.Divider />
                     <Dropdown.Item onClick={handleLogout}>
                       <i className="bi bi-box-arrow-right me-2"></i>
@@ -392,9 +427,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Main Content */}
       <main role="main" className="flex-grow-1">
-        <Container className="py-4">
-          {children}
-        </Container>
+        {children}
       </main>
 
       {/* Footer */}

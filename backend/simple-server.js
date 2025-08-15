@@ -82,6 +82,7 @@ app.post('/api/auth/login', async (req, res) => {
         full_name: user.full_name,
         position: user.position,
         department: user.department,
+        role: user.role,
         is_admin: user.is_admin
       },
       token,
@@ -129,6 +130,7 @@ app.get('/api/auth/me', async (req, res) => {
       full_name: user.full_name,
       position: user.position,
       department: user.department,
+      role: user.role,
       is_admin: user.is_admin
     });
   } catch (error) {

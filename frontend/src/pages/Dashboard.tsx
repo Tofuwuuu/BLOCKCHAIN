@@ -128,7 +128,7 @@ const Dashboard: React.FC = () => {
             <div>
               <h2 className="mb-1">Dashboard</h2>
               <p className="text-muted mb-0">
-                Welcome back, {user?.full_name || 'User'}!
+                Welcome back, {user?.role === 'procurement' || user?.role === 'procurement0' ? 'procurement' : user?.full_name || 'User'}!
               </p>
             </div>
             <Button variant="outline-primary" onClick={handleRefresh}>
