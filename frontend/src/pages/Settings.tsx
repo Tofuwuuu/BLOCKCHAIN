@@ -17,8 +17,6 @@ const Settings: React.FC = () => {
   const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const [systemInfo, setSystemInfo] = useState<any>(null);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false,
     message: '',
@@ -28,11 +26,6 @@ const Settings: React.FC = () => {
   // Form states
   const [systemForm, setSystemForm] = useState<UpdateSystemSettingsData>({});
   const [preferencesForm, setPreferencesForm] = useState<UpdateUserPreferencesData>({});
-  const [roleForm, setRoleForm] = useState<CreateRoleData>({
-    name: '',
-    description: '',
-    permissions: []
-  });
 
   useEffect(() => {
     if (user?.is_admin) {
