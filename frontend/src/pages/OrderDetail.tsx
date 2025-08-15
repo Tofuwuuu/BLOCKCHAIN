@@ -131,8 +131,9 @@ const OrderDetail: React.FC = () => {
         // Success - create blockchain transaction
         try {
           await apiService.createTransaction({
-            sender: user.username,
-            recipient: 'system',
+            from: user.username,
+            to: 'system',
+            amount: 0,
             action: 'approve_order',
             data: {
               order_id: order.id,

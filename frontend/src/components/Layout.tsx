@@ -2,6 +2,7 @@ import React from 'react';
 import { Navbar, Nav, Container, Dropdown, Badge } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../image/system logo-03.png';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -34,10 +35,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           className="ph-header"
           aria-label="Main navigation"
         >
-          <Container>
+          <Container fluid>
             <Navbar.Brand as={Link} to="/dashboard" className="d-flex align-items-center">
-              <i className="bi bi-shield-check me-2"></i>
-              <span>Philippine Procurement Solutions</span>
+              <img 
+                src={logo} 
+                alt="Philippine Procurement Solutions" 
+                height="40" 
+                className="me-3"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+              <span className="fw-bold fs-5">Philippine Procurement Solutions</span>
             </Navbar.Brand>
             
             <Navbar.Toggle aria-controls="main-nav" />
@@ -49,7 +56,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   as={Link} 
                   to="/dashboard" 
                   active={isActive('/dashboard')}
-                  className="d-flex align-items-center"
+                  className="d-flex align-items-center nav-item-custom"
                 >
                   <i className="bi bi-grid-1x2 me-2"></i>
                   Dashboard
@@ -62,7 +69,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/item-proposal" 
                       active={isActive('/item-proposal')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-plus-circle me-2"></i>
                       Item Proposal
@@ -72,7 +79,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/pending-items" 
                       active={isActive('/pending-items')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-clock me-2"></i>
                       Pending Items
@@ -82,7 +89,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/purchase-requests" 
                       active={isActive('/purchase-requests')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-file-earmark-text me-2"></i>
                       Purchase Requests
@@ -92,7 +99,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/blockchain" 
                       active={isActive('/blockchain')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-link-45deg me-2"></i>
                       Blockchain Transactions
@@ -102,7 +109,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/suppliers" 
                       active={isActive('/suppliers')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-building me-2"></i>
                       Supplier List
@@ -118,7 +125,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/users" 
                       active={isActive('/users')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-people me-2"></i>
                       User Management
@@ -129,7 +136,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/item-management" 
                       active={isActive('/item-management')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-box-seam me-2"></i>
                       Item Management
@@ -140,7 +147,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/orders" 
                       active={isActive('/orders')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-cart me-2"></i>
                       Purchase Orders
@@ -151,7 +158,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/suppliers" 
                       active={isActive('/suppliers')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-building me-2"></i>
                       Suppliers
@@ -162,7 +169,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/inventory" 
                       active={isActive('/inventory')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-box-seam me-2"></i>
                       Inventory
@@ -173,7 +180,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/blockchain" 
                       active={isActive('/blockchain')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-link-45deg me-2"></i>
                       Blockchain
@@ -184,7 +191,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/audit-logs" 
                       active={isActive('/audit-logs')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-clock-history me-2"></i>
                       Audit Logs
@@ -198,7 +205,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     as={Link} 
                     to="/blockchain" 
                     active={isActive('/blockchain')}
-                    className="d-flex align-items-center"
+                    className="d-flex align-items-center nav-item-custom"
                   >
                     <i className="bi bi-link-45deg me-2"></i>
                     Blockchain Consensus
@@ -212,7 +219,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/blockchain" 
                       active={isActive('/blockchain')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-link-45deg me-2"></i>
                       Blockchain Explorer
@@ -227,7 +234,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/orders" 
                       active={isActive('/orders')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-cart me-2"></i>
                       Purchase Orders
@@ -237,7 +244,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       as={Link} 
                       to="/blockchain" 
                       active={isActive('/blockchain')}
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center nav-item-custom"
                     >
                       <i className="bi bi-link-45deg me-2"></i>
                       Financial Records
@@ -249,49 +256,50 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <Dropdown as={Nav.Item} className="d-flex align-items-center">
                   <Dropdown.Toggle 
                     as={Nav.Link} 
-                    className="d-flex align-items-center"
+                    className="d-flex align-items-center nav-item-custom"
                   >
                     <i className="bi bi-file-text me-2"></i>
                     Reports
+                    <i className="bi bi-chevron-down ms-1"></i>
                   </Dropdown.Toggle>
-                  <Dropdown.Menu>
+                  <Dropdown.Menu className="dropdown-menu-custom">
                     {/* Admin role - ALL REPORTS ACCESS */}
                     {user?.is_admin && (
                       <>
-                        <Dropdown.Item as={Link} to="/reports/financial">
+                        <Dropdown.Item as={Link} to="/reports/financial" className="dropdown-item-custom">
                           <i className="bi bi-cash-stack me-2"></i>
                           Financial Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/procurement">
+                        <Dropdown.Item as={Link} to="/reports/procurement" className="dropdown-item-custom">
                           <i className="bi bi-cart me-2"></i>
                           Procurement Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/blockchain">
+                        <Dropdown.Item as={Link} to="/reports/blockchain" className="dropdown-item-custom">
                           <i className="bi bi-link-45deg me-2"></i>
                           Blockchain Transaction Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/audit">
+                        <Dropdown.Item as={Link} to="/reports/audit" className="dropdown-item-custom">
                           <i className="bi bi-clock-history me-2"></i>
                           Audit Trail
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/bir">
+                        <Dropdown.Item as={Link} to="/reports/bir" className="dropdown-item-custom">
                           <i className="bi bi-file-earmark-text me-2"></i>
                           BIR Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/inventory">
+                        <Dropdown.Item as={Link} to="/reports/inventory" className="dropdown-item-custom">
                           <i className="bi bi-box-seam me-2"></i>
                           Inventory Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/orders">
+                        <Dropdown.Item as={Link} to="/reports/orders" className="dropdown-item-custom">
                           <i className="bi bi-cart me-2"></i>
                           Order Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/suppliers">
+                        <Dropdown.Item as={Link} to="/reports/suppliers" className="dropdown-item-custom">
                           <i className="bi bi-building me-2"></i>
                           Supplier Reports
                         </Dropdown.Item>
                         <Dropdown.Divider />
-                        <Dropdown.Item as={Link} to="/reports/system">
+                        <Dropdown.Item as={Link} to="/reports/system" className="dropdown-item-custom">
                           <i className="bi bi-gear me-2"></i>
                           System Reports
                         </Dropdown.Item>
@@ -301,23 +309,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     {/* Procurement role - procurement-focused reports (non-admin) */}
                     {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
                       <>
-                        <Dropdown.Item as={Link} to="/reports/item-proposals">
+                        <Dropdown.Item as={Link} to="/reports/item-proposals" className="dropdown-item-custom">
                           <i className="bi bi-plus-circle me-2"></i>
                           Item Proposal Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/pending-items">
+                        <Dropdown.Item as={Link} to="/reports/pending-items" className="dropdown-item-custom">
                           <i className="bi bi-clock me-2"></i>
                           Pending Items Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/purchase-requests">
+                        <Dropdown.Item as={Link} to="/reports/purchase-requests" className="dropdown-item-custom">
                           <i className="bi bi-file-earmark-text me-2"></i>
                           Purchase Request Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/suppliers">
+                        <Dropdown.Item as={Link} to="/reports/suppliers" className="dropdown-item-custom">
                           <i className="bi bi-building me-2"></i>
                           Supplier Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/blockchain">
+                        <Dropdown.Item as={Link} to="/reports/blockchain" className="dropdown-item-custom">
                           <i className="bi bi-link-45deg me-2"></i>
                           Blockchain Transaction Reports
                         </Dropdown.Item>
@@ -327,15 +335,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     {/* Finance role - financial reports (non-admin) */}
                     {user?.role === 'finance' && !user?.is_admin && (
                       <>
-                        <Dropdown.Item as={Link} to="/reports/bir">
+                        <Dropdown.Item as={Link} to="/reports/bir" className="dropdown-item-custom">
                           <i className="bi bi-file-earmark-text me-2"></i>
                           BIR Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/financial">
+                        <Dropdown.Item as={Link} to="/reports/financial" className="dropdown-item-custom">
                           <i className="bi bi-cash-stack me-2"></i>
                           Financial Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/orders">
+                        <Dropdown.Item as={Link} to="/reports/orders" className="dropdown-item-custom">
                           <i className="bi bi-cart me-2"></i>
                           Order Reports
                         </Dropdown.Item>
@@ -345,15 +353,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     {/* Auditor role - audit and compliance reports (non-admin) */}
                     {user?.role === 'auditor' && !user?.is_admin && (
                       <>
-                        <Dropdown.Item as={Link} to="/reports/audit">
+                        <Dropdown.Item as={Link} to="/reports/audit" className="dropdown-item-custom">
                           <i className="bi bi-clock-history me-2"></i>
                           Audit Trail
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/compliance">
+                        <Dropdown.Item as={Link} to="/reports/compliance" className="dropdown-item-custom">
                           <i className="bi bi-shield-check me-2"></i>
                           Compliance Reports
                         </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/reports/blockchain">
+                        <Dropdown.Item as={Link} to="/reports/blockchain" className="dropdown-item-custom">
                           <i className="bi bi-link-45deg me-2"></i>
                           Blockchain Reports
                         </Dropdown.Item>
@@ -367,38 +375,39 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <Dropdown as={Nav.Item} className="d-flex align-items-center">
                   <Dropdown.Toggle 
                     as={Nav.Link} 
-                    className="d-flex align-items-center"
+                    className="d-flex align-items-center nav-item-custom user-dropdown-toggle"
                   >
                     <i className="bi bi-person-circle me-2"></i>
-                    <span>{user?.username || 'User'}</span>
+                    <span className="me-2">{user?.username || 'User'}</span>
                     {user?.is_admin && (
-                      <Badge bg="warning" className="ms-2">Admin</Badge>
+                      <Badge bg="warning" className="me-2 admin-badge">Admin</Badge>
                     )}
                     {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
-                      <Badge bg="primary" className="ms-2">Procurement</Badge>
+                      <Badge bg="primary" className="me-2">Procurement</Badge>
                     )}
                     {user?.role === 'validator' && !user?.is_admin && (
-                      <Badge bg="warning" className="ms-2">Validator</Badge>
+                      <Badge bg="warning" className="me-2">Validator</Badge>
                     )}
                     {user?.role === 'auditor' && !user?.is_admin && (
-                      <Badge bg="secondary" className="ms-2">Auditor</Badge>
+                      <Badge bg="secondary" className="me-2">Auditor</Badge>
                     )}
                     {user?.role === 'finance' && !user?.is_admin && (
-                      <Badge bg="success" className="ms-2">Finance</Badge>
+                      <Badge bg="success" className="me-2">Finance</Badge>
                     )}
                     {user?.role === 'supplier' && !user?.is_admin && (
-                      <Badge bg="info" className="ms-2">Supplier</Badge>
+                      <Badge bg="info" className="me-2">Supplier</Badge>
                     )}
+                    <i className="bi bi-chevron-down"></i>
                   </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item as={Link} to="/profile">
+                  <Dropdown.Menu className="dropdown-menu-custom user-dropdown-menu">
+                    <Dropdown.Item as={Link} to="/profile" className="dropdown-item-custom">
                       <i className="bi bi-person me-2"></i>
                       Profile
                     </Dropdown.Item>
                     
                     {/* Settings - Admin Only */}
                     {user?.is_admin && (
-                      <Dropdown.Item as={Link} to="/settings">
+                      <Dropdown.Item as={Link} to="/settings" className="dropdown-item-custom">
                         <i className="bi bi-gear me-2"></i>
                         System Settings
                       </Dropdown.Item>
@@ -406,14 +415,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     
                     {/* Procurement Settings - Procurement users only (non-admin) */}
                     {(user?.role === 'procurement' || user?.role === 'procurement0') && !user?.is_admin && (
-                      <Dropdown.Item as={Link} to="/procurement-settings">
+                      <Dropdown.Item as={Link} to="/procurement-settings" className="dropdown-item-custom">
                         <i className="bi bi-gear me-2"></i>
                         Procurement Settings
                       </Dropdown.Item>
                     )}
                     
                     <Dropdown.Divider />
-                    <Dropdown.Item onClick={handleLogout}>
+                    <Dropdown.Item onClick={handleLogout} className="dropdown-item-custom">
                       <i className="bi bi-box-arrow-right me-2"></i>
                       Logout
                     </Dropdown.Item>

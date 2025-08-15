@@ -177,9 +177,9 @@ export interface Block {
 }
 
 export interface Transaction {
-  sender: string;
-  recipient: string;
-  amount?: number;
+  from: string;
+  to: string;
+  amount: number;
   action: string;
   data?: any;
   timestamp: string;
@@ -288,8 +288,9 @@ export interface CreateOrderData {
 }
 
 export interface CreateTransactionData {
-  sender: string;
-  recipient: string;
+  from: string;
+  to: string;
+  amount: number;
   action: string;
   data?: any;
 }
@@ -420,11 +421,20 @@ export const apiService = {
   // ===== PEERS =====
   getPeers: async (): Promise<Peer[]> => {
     const response = await api.get('/peers');
-    return response.data;
+    return response.data.peers || [];
   },
 
   addPeer: async (url: string): Promise<Peer> => {
-    const response = await api.post('/add_peer', { url });
+    // Parse URL to extract host and port
+    const urlObj = new URL(url);
+    const host = urlObj.hostname;
+    const port = parseInt(urlObj.port);
+    
+    const response = await api.post('/add_peer', { 
+      host, 
+      port, 
+      nodeId: `node-${Date.now()}` 
+    });
     return response.data;
   },
 

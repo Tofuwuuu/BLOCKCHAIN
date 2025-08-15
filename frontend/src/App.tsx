@@ -11,6 +11,7 @@ import Inventory from './pages/Inventory';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import ItemManagement from './pages/ItemManagement';
 import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 
@@ -31,6 +32,25 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   console.log('✅ ProtectedRoute: User authenticated, rendering children');
+  return <>{children}</>;
+};
+
+// Admin Route Component
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading, user } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner size="lg" text="Loading..." />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!user?.is_admin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -145,30 +165,49 @@ function App() {
           }
         />
 
+        {/* Admin-Only Routes */}
         <Route
           path="/users"
           element={
-            <ProtectedRoute>
+            <AdminRoute>
               <Layout>
                 <Users />
               </Layout>
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
 
         <Route
           path="/settings"
           element={
-            <ProtectedRoute>
+            <AdminRoute>
               <Layout>
                 <Settings />
               </Layout>
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
 
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/item-management"
+          element={
+            <AdminRoute>
+              <Layout>
+                <ItemManagement />
+              </Layout>
+            </AdminRoute>
+          }
+        />
+
+        {/* Catch-all route */}
+        <Route
+          path="*"
+          element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard" replace />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Container, Row, Col, Card, Table, Button, Badge, 
+  Form, Modal, Alert, InputGroup 
+} from 'react-bootstrap';
 import { apiService, User, CreateUserData } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import Layout from '../components/Layout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
@@ -15,33 +18,106 @@ interface UserFormData {
   role: string;
 }
 
+// Mock data for demonstration
+const mockUsers: User[] = [
+  {
+    id: 1,
+    username: "admin",
+    full_name: "System Administrator",
+    position: "System Administrator",
+    department: "IT Department",
+    role: "admin",
+    is_admin: true,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z"
+  },
+  {
+    id: 2,
+    username: "procurement0",
+    full_name: "Juan Dela Cruz",
+    position: "Procurement Officer",
+    department: "Procurement Department",
+    role: "procurement",
+    is_admin: false,
+    created_at: "2025-08-15T10:30:00Z",
+    updated_at: "2025-08-15T10:30:00Z"
+  },
+  {
+    id: 3,
+    username: "procurement1",
+    full_name: "Maria Santos",
+    position: "Senior Procurement Officer",
+    department: "Procurement Department",
+    role: "procurement",
+    is_admin: false,
+    created_at: "2025-08-14T14:20:00Z",
+    updated_at: "2025-08-14T14:20:00Z"
+  },
+  {
+    id: 4,
+    username: "procurement2",
+    full_name: "Pedro Martinez",
+    position: "Procurement Specialist",
+    department: "Procurement Department",
+    role: "procurement",
+    is_admin: false,
+    created_at: "2025-08-13T09:15:00Z",
+    updated_at: "2025-08-13T09:15:00Z"
+  },
+  {
+    id: 5,
+    username: "validator1",
+    full_name: "Ana Reyes",
+    position: "Validation Officer",
+    department: "Quality Assurance",
+    role: "validator",
+    is_admin: false,
+    created_at: "2025-08-12T16:45:00Z",
+    updated_at: "2025-08-12T16:45:00Z"
+  },
+  {
+    id: 6,
+    username: "finance1",
+    full_name: "Carlos Lopez",
+    position: "Finance Manager",
+    department: "Finance Department",
+    role: "finance",
+    is_admin: false,
+    created_at: "2025-08-11T11:30:00Z",
+    updated_at: "2025-08-11T11:30:00Z"
+  }
+];
+
+const mockRoles = [
+  'admin',
+  'procurement',
+  'validator',
+  'supplier',
+  'auditor',
+  'finance'
+];
+
+const roleDescriptions: Record<string, string> = {
+  'admin': 'Full system access and user management',
+  'procurement': 'Create and manage purchase orders',
+  'validator': 'Approve and validate transactions',
+  'supplier': 'View and manage supplier information',
+  'auditor': 'Access audit logs and reports',
+  'finance': 'Financial reporting and analysis'
+};
+
 const Users: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
-
-  // Helper function to get role badge color
-  const getRoleBadgeColor = (role: string): string => {
-    switch (role) {
-      case 'admin': return 'danger';
-      case 'procurement': return 'primary';
-      case 'validator': return 'warning';
-      case 'supplier': return 'info';
-      case 'auditor': return 'secondary';
-      case 'finance': return 'success';
-      default: return 'secondary';
-    }
-  };
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [roles, setRoles] = useState<string[]>([]);
-  const [roleDescriptions, setRoleDescriptions] = useState<Record<string, string>>({});
-  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
-    show: false,
-    message: '',
-    type: 'success'
-  });
+  const [usingMockData, setUsingMockData] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [formData, setFormData] = useState<UserFormData>({
     username: '',
@@ -49,136 +125,178 @@ const Users: React.FC = () => {
     full_name: '',
     position: '',
     department: '',
-    role: 'procurement' // Default role
+    role: 'procurement'
   });
+
+  const [errors, setErrors] = useState<{
+    username?: string;
+    password?: string;
+    full_name?: string;
+    position?: string;
+    department?: string;
+    role?: string;
+  }>({});
 
   // Check if user is admin
   useEffect(() => {
     if (user && !user.is_admin) {
-      setToast({
-        show: true,
-        message: 'Access denied. Admin privileges required.',
-        type: 'error'
-      });
+      setToastMessage('Access denied. Admin privileges required.');
+      setToastType('error');
+      setShowToast(true);
       setTimeout(() => navigate('/dashboard'), 2000);
     }
   }, [user, navigate]);
 
-  // Load users and roles
+  // Load users
   useEffect(() => {
     if (user?.is_admin) {
-      loadUsers();
-      loadRoles();
+      fetchUsers();
     }
   }, [user]);
 
-  const loadUsers = async () => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getUsers();
-      setUsers(response);
+      
+      // Try to fetch from API first
+      try {
+        const response = await apiService.getUsers();
+        setUsers(response);
+        setUsingMockData(false);
+      } catch (apiError) {
+        console.log('API not available, using mock data...');
+        // Use mock data if API fails
+        setUsers(mockUsers);
+        setUsingMockData(true);
+        
+        // Show warning toast
+        setToastMessage('Using demo data - backend not available');
+        setToastType('warning');
+        setShowToast(true);
+      }
     } catch (error) {
       console.error('Failed to load users:', error);
-      setToast({
-        show: true,
-        message: 'Failed to load users',
-        type: 'error'
-      });
+      // Fallback to mock data
+      setUsers(mockUsers);
+      setUsingMockData(true);
+      
+      setToastMessage('Failed to load users, using demo data');
+      setToastType('warning');
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadRoles = async () => {
-    try {
-      const response = await apiService.getRoles();
-      setRoles(response.roles);
-      setRoleDescriptions(response.descriptions);
-    } catch (error) {
-      console.error('Failed to load roles:', error);
+  const validateForm = (): boolean => {
+    const newErrors: {
+      username?: string;
+      password?: string;
+      full_name?: string;
+      position?: string;
+      department?: string;
+      role?: string;
+    } = {};
+
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
     }
+
+    if (!editingUser && !formData.password.trim()) {
+      newErrors.password = 'Password is required';
+    }
+
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = 'Full name is required';
+    }
+
+    if (!formData.position.trim()) {
+      newErrors.position = 'Position is required';
+    }
+
+    if (!formData.department.trim()) {
+      newErrors.department = 'Department is required';
+    }
+
+    if (!formData.role) {
+      newErrors.role = 'Role is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      username: '',
-      password: '',
-      full_name: '',
-      position: '',
-      department: '',
-      role: 'procurement' // Default role
-    });
-    setEditingUser(null);
-    setShowCreateForm(false);
-  };
-
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      const userData: CreateUserData = {
-        username: formData.username,
-        password: formData.password,
-        full_name: formData.full_name,
-        position: formData.position,
-        department: formData.department,
-        role: formData.role
-      };
-
-      await apiService.createUser(userData);
-      setToast({
-        show: true,
-        message: 'User created successfully',
-        type: 'success'
-      });
-      resetForm();
-      loadUsers();
-    } catch (error: any) {
-      console.error('Failed to create user:', error);
-      setToast({
-        show: true,
-        message: error.response?.data?.error || 'Failed to create user',
-        type: 'error'
-      });
-    }
-  };
-
-  const handleEditUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!editingUser) return;
+    if (!validateForm()) return;
 
     try {
-      const userData = {
-        full_name: formData.full_name,
-        position: formData.position,
-        department: formData.department,
-        role: formData.role
-      };
-
-      await apiService.updateUser(editingUser.id, userData);
-      setToast({
-        show: true,
-        message: 'User updated successfully',
-        type: 'success'
-      });
+      if (usingMockData) {
+        // Simulate API call for mock data
+        if (editingUser) {
+          const updatedUsers = users.map(u => 
+            u.id === editingUser.id 
+              ? { 
+                  ...u, 
+                  full_name: formData.full_name,
+                  position: formData.position,
+                  department: formData.department,
+                  role: formData.role,
+                  updated_at: new Date().toISOString()
+                }
+              : u
+          );
+          setUsers(updatedUsers);
+          setToastMessage('User updated successfully (Demo)');
+        } else {
+          const newUser: User = {
+            id: users.length + 1,
+            username: formData.username,
+            full_name: formData.full_name,
+            position: formData.position,
+            department: formData.department,
+            role: formData.role,
+            is_admin: formData.role === 'admin',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          setUsers([...users, newUser]);
+          setToastMessage('User created successfully (Demo)');
+        }
+      } else {
+        // Real API call
+        if (editingUser) {
+          await apiService.updateUser(editingUser.id, {
+            full_name: formData.full_name,
+            position: formData.position,
+            department: formData.department,
+            role: formData.role
+          });
+          setToastMessage('User updated successfully');
+        } else {
+          await apiService.createUser({
+            username: formData.username,
+            password: formData.password,
+            full_name: formData.full_name,
+            position: formData.position,
+            department: formData.department,
+            role: formData.role
+          });
+          setToastMessage('User created successfully');
+        }
+        fetchUsers();
+      }
+      
+      setToastType('success');
+      setShowToast(true);
+      setShowModal(false);
       resetForm();
-      loadUsers();
     } catch (error: any) {
-      console.error('Failed to update user:', error);
-      setToast({
-        show: true,
-        message: error.response?.data?.error || 'Failed to update user',
-        type: 'error'
-      });
+      console.error('Failed to save user:', error);
+      setToastMessage(error.response?.data?.error || 'Failed to save user');
+      setToastType('error');
+      setShowToast(true);
     }
   };
 
@@ -188,21 +306,46 @@ const Users: React.FC = () => {
     }
 
     try {
-      await apiService.deleteUser(userId);
-      setToast({
-        show: true,
-        message: 'User deleted successfully',
-        type: 'success'
-      });
-      loadUsers();
+      if (usingMockData) {
+        // Simulate deletion for mock data
+        setUsers(users.filter(u => u.id !== userId));
+        setToastMessage('User deleted successfully (Demo)');
+      } else {
+        await apiService.deleteUser(userId);
+        setToastMessage('User deleted successfully');
+        fetchUsers();
+      }
+      setToastType('success');
+      setShowToast(true);
     } catch (error: any) {
       console.error('Failed to delete user:', error);
-      setToast({
-        show: true,
-        message: error.response?.data?.error || 'Failed to delete user',
-        type: 'error'
-      });
+      setToastMessage(error.response?.data?.error || 'Failed to delete user');
+      setToastType('error');
+      setShowToast(true);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      username: '',
+      password: '',
+      full_name: '',
+      position: '',
+      department: '',
+      role: 'procurement'
+    });
+    setErrors({});
+    setEditingUser(null);
+  };
+
+  const handleShowModal = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    resetForm();
   };
 
   const startEditUser = (user: User) => {
@@ -215,152 +358,95 @@ const Users: React.FC = () => {
       department: user.department,
       role: user.role
     });
-    setShowCreateForm(true);
+    setShowModal(true);
   };
 
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (!user?.is_admin) {
-    return <LoadingSpinner />;
+    return (
+      <Container>
+        <LoadingSpinner size="lg" text="Checking permissions..." />
+      </Container>
+    );
   }
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <Container>
+        <LoadingSpinner size="lg" text="Loading users..." />
+      </Container>
+    );
   }
 
   return (
-    <div className="container-fluid">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">User Management</h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowCreateForm(true)}
-        >
-          <i className="fas fa-plus me-2"></i>
-          Add User
-        </button>
-      </div>
-
-      {/* Create/Edit User Form */}
-      {showCreateForm && (
-        <div className="card mb-4">
-          <div className="card-header">
-            <h5 className="mb-0">
-              {editingUser ? 'Edit User' : 'Create New User'}
-            </h5>
+    <Container>
+      {/* Header */}
+      <Row className="mb-4">
+        <Col>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 className="h2 mb-1">User Management</h1>
+              <p className="text-muted mb-0">
+                Manage system users and their roles
+                {usingMockData && (
+                  <span className="ms-2 badge bg-warning text-dark">Demo Mode</span>
+                )}
+              </p>
+            </div>
+            <Button 
+              variant="primary" 
+              onClick={handleShowModal}
+              aria-label="Add new user"
+            >
+              <i className="bi bi-plus-circle me-2"></i>
+              Add User
+            </Button>
           </div>
-          <div className="card-body">
-            <form onSubmit={editingUser ? handleEditUser : handleCreateUser}>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Username *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required
-                    disabled={!!editingUser}
-                  />
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Password *</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required={!editingUser}
-                    placeholder={editingUser ? 'Leave blank to keep current' : ''}
-                  />
-                </div>
-              </div>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Full Name *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Position *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="position"
-                    value={formData.position}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Department *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Role *</label>
-                  <select
-                    className="form-select"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    {roles.map(role => (
-                      <option key={role} value={role}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                  {roleDescriptions[formData.role] && (
-                    <small className="form-text text-muted">
-                      {roleDescriptions[formData.role]}
-                    </small>
-                  )}
-                </div>
-              </div>
-              <div className="d-flex gap-2">
-                <button type="submit" className="btn btn-primary">
-                  {editingUser ? 'Update User' : 'Create User'}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={resetForm}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </Col>
+      </Row>
 
-      {/* Users List */}
-      <div className="card">
-        <div className="card-header">
-          <h5 className="mb-0">Users ({users.length})</h5>
-        </div>
-        <div className="card-body">
+      {/* Search */}
+      <Row className="mb-4">
+        <Col md={6}>
+          <InputGroup>
+            <InputGroup.Text>
+              <i className="bi bi-search"></i>
+            </InputGroup.Text>
+            <Form.Control
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search users"
+            />
+          </InputGroup>
+        </Col>
+      </Row>
+
+      {/* Users Table */}
+      <Card>
+        <Card.Header>
+          <h5 className="mb-0">Users ({filteredUsers.length})</h5>
+        </Card.Header>
+        <Card.Body className="p-0">
           <div className="table-responsive">
-            <table className="table table-striped">
+            <Table striped bordered className="mb-0">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Username</th>
                   <th>Full Name</th>
                   <th>Position</th>
@@ -372,61 +458,209 @@ const Users: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {filteredUsers.map((user) => (
                   <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.username}</td>
+                    <td>
+                      <strong>{user.username}</strong>
+                    </td>
                     <td>{user.full_name}</td>
                     <td>{user.position}</td>
                     <td>{user.department}</td>
                     <td>
-                      <span className={`badge bg-${getRoleBadgeColor(user.role)}`}>
+                      <Badge bg={
+                        user.role === 'admin' ? 'danger' :
+                        user.role === 'procurement' ? 'primary' :
+                        user.role === 'validator' ? 'warning' :
+                        user.role === 'supplier' ? 'info' :
+                        user.role === 'auditor' ? 'secondary' :
+                        user.role === 'finance' ? 'success' : 'secondary'
+                      }>
                         {user.role}
-                      </span>
+                      </Badge>
                     </td>
                     <td>
                       {user.is_admin ? (
-                        <span className="badge bg-success">Yes</span>
+                        <Badge bg="success">Yes</Badge>
                       ) : (
-                        <span className="badge bg-secondary">No</span>
+                        <Badge bg="secondary">No</Badge>
                       )}
                     </td>
-                    <td>{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</td>
+                    <td>{formatDate(user.created_at)}</td>
                     <td>
-                      <div className="btn-group btn-group-sm">
-                        <button
-                          className="btn btn-outline-primary"
+                      <div className="d-flex gap-1">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
                           onClick={() => startEditUser(user)}
-                          title="Edit User"
+                          aria-label={`Edit ${user.username}`}
                         >
-                          <i className="fas fa-edit"></i>
-                        </button>
+                          <i className="bi bi-pencil"></i>
+                        </Button>
                         {user.id !== 1 && ( // Prevent deleting the main admin
-                          <button
-                            className="btn btn-outline-danger"
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
                             onClick={() => handleDeleteUser(user.id)}
-                            title="Delete User"
+                            aria-label={`Delete ${user.username}`}
                           >
-                            <i className="fas fa-trash"></i>
-                          </button>
+                            <i className="bi bi-trash"></i>
+                          </Button>
                         )}
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </Table>
           </div>
-        </div>
-      </div>
+        </Card.Body>
+      </Card>
 
+      {/* User Modal */}
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editingUser ? 'Edit User' : 'Create New User'}
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
+            <Row className="g-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label htmlFor="username">Username *</Form.Label>
+                  <Form.Control
+                    id="username"
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    isInvalid={!!errors.username}
+                    disabled={!!editingUser}
+                    aria-describedby="usernameError"
+                  />
+                  <Form.Control.Feedback type="invalid" id="usernameError">
+                    {errors.username}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label htmlFor="password">Password *</Form.Label>
+                  <Form.Control
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    isInvalid={!!errors.password}
+                    placeholder={editingUser ? 'Leave blank to keep current' : ''}
+                    aria-describedby="passwordError"
+                  />
+                  <Form.Control.Feedback type="invalid" id="passwordError">
+                    {errors.password}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label htmlFor="full_name">Full Name *</Form.Label>
+                  <Form.Control
+                    id="full_name"
+                    type="text"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    isInvalid={!!errors.full_name}
+                    aria-describedby="fullNameError"
+                  />
+                  <Form.Control.Feedback type="invalid" id="fullNameError">
+                    {errors.full_name}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label htmlFor="position">Position *</Form.Label>
+                  <Form.Control
+                    id="position"
+                    type="text"
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    isInvalid={!!errors.position}
+                    aria-describedby="positionError"
+                  />
+                  <Form.Control.Feedback type="invalid" id="positionError">
+                    {errors.position}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label htmlFor="department">Department *</Form.Label>
+                  <Form.Control
+                    id="department"
+                    type="text"
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    isInvalid={!!errors.department}
+                    aria-describedby="departmentError"
+                  />
+                  <Form.Control.Feedback type="invalid" id="departmentError">
+                    {errors.department}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label htmlFor="role">Role *</Form.Label>
+                  <Form.Select
+                    id="role"
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    isInvalid={!!errors.role}
+                    aria-describedby="roleError"
+                  >
+                    <option value="">Select Role</option>
+                    {mockRoles.map(role => (
+                      <option key={role} value={role}>
+                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </option>
+                    ))}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid" id="roleError">
+                    {errors.role}
+                  </Form.Control.Feedback>
+                  {roleDescriptions[formData.role] && (
+                    <Form.Text className="text-muted">
+                      {roleDescriptions[formData.role]}
+                    </Form.Text>
+                  )}
+                </Form.Group>
+              </Col>
+            </Row>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              {editingUser ? 'Update User' : 'Create User'}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Toast Notification */}
       <Toast
-        show={toast.show}
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ ...toast, show: false })}
+        show={showToast}
+        message={toastMessage}
+        type={toastType}
+        onClose={() => setShowToast(false)}
       />
-    </div>
+    </Container>
   );
 };
 

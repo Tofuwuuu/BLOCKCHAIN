@@ -9,6 +9,211 @@ import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
+// Mock data for demonstration
+const mockSuppliers: Supplier[] = [
+  {
+    id: 1,
+    name: "TechDistributors Inc",
+    address: "123 Tech Street, Makati City",
+    province: "Metro Manila",
+    contact_person: "Juan Dela Cruz",
+    phone: "+63 2 1234 5678",
+    email: "contact@techdistributors.com",
+    bir_tin: "123-456-789-000",
+    is_active: true,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z"
+  },
+  {
+    id: 2,
+    name: "ABC Supplies",
+    address: "456 Supply Avenue, Quezon City",
+    province: "Metro Manila",
+    contact_person: "Maria Santos",
+    phone: "+63 2 2345 6789",
+    email: "info@abcsupplies.com",
+    bir_tin: "234-567-890-000",
+    is_active: true,
+    created_at: "2024-01-02T00:00:00Z",
+    updated_at: "2024-01-02T00:00:00Z"
+  },
+  {
+    id: 3,
+    name: "Metro Manila Electronics",
+    address: "789 Electronics Road, Pasig City",
+    province: "Metro Manila",
+    contact_person: "Pedro Martinez",
+    phone: "+63 2 3456 7890",
+    email: "sales@metroelectronics.com",
+    bir_tin: "345-678-901-000",
+    is_active: true,
+    created_at: "2024-01-03T00:00:00Z",
+    updated_at: "2024-01-03T00:00:00Z"
+  }
+];
+
+const mockProducts: Product[] = [
+  {
+    id: 1,
+    name: "Office Chairs - Ergonomic",
+    description: "High-quality ergonomic office chairs with adjustable features",
+    unit: "pieces",
+    unit_price: 2500.00,
+    category: "Office Furniture",
+    is_active: true
+  },
+  {
+    id: 2,
+    name: "Laptop Stands",
+    description: "Adjustable laptop stands for better ergonomics",
+    unit: "pieces",
+    unit_price: 800.00,
+    category: "Office Equipment",
+    is_active: true
+  },
+  {
+    id: 3,
+    name: "Wireless Keyboards",
+    description: "Bluetooth wireless keyboards with backlit keys",
+    unit: "pieces",
+    unit_price: 1200.00,
+    category: "Computer Accessories",
+    is_active: true
+  },
+  {
+    id: 4,
+    name: "Desk Organizers",
+    description: "Multi-compartment desk organizers for office supplies",
+    unit: "pieces",
+    unit_price: 350.00,
+    category: "Office Supplies",
+    is_active: true
+  }
+];
+
+const mockOrders: PurchaseOrder[] = [
+  {
+    id: 1,
+    po_number: "PO-20250101-001",
+    supplier_id: 1,
+    supplier: mockSuppliers[0],
+    delivery_address: "123 Ayala Avenue, Makati City, Philippines",
+    notes: "Urgent delivery required",
+    status: "Draft",
+    total_amount: 60000.00,
+    date_created: "2025-01-01T10:30:00Z",
+    date_updated: "2025-01-01T10:30:00Z",
+    items: [
+      {
+        id: 1,
+        product_id: 1,
+        product: mockProducts[0],
+        quantity: 20,
+        unit_price: 2500.00,
+        total_price: 50000.00
+      },
+      {
+        id: 2,
+        product_id: 2,
+        product: mockProducts[1],
+        quantity: 10,
+        unit_price: 800.00,
+        total_price: 8000.00
+      }
+    ]
+  },
+  {
+    id: 2,
+    po_number: "PO-20250101-002",
+    supplier_id: 2,
+    supplier: mockSuppliers[1],
+    delivery_address: "456 Supply Avenue, Quezon City, Philippines",
+    notes: "Standard delivery",
+    status: "Pending",
+    total_amount: 45000.00,
+    date_created: "2025-01-02T14:15:00Z",
+    date_updated: "2025-01-02T14:15:00Z",
+    items: [
+      {
+        id: 3,
+        product_id: 3,
+        product: mockProducts[2],
+        quantity: 30,
+        unit_price: 1200.00,
+        total_price: 36000.00
+      },
+      {
+        id: 4,
+        product_id: 4,
+        product: mockProducts[3],
+        quantity: 25,
+        unit_price: 350.00,
+        total_price: 8750.00
+      }
+    ]
+  },
+  {
+    id: 3,
+    po_number: "PO-20250101-003",
+    supplier_id: 3,
+    supplier: mockSuppliers[2],
+    delivery_address: "789 Electronics Road, Pasig City, Philippines",
+    notes: "Premium delivery service",
+    status: "Approved",
+    total_amount: 75000.00,
+    date_created: "2025-01-03T09:45:00Z",
+    date_updated: "2025-01-03T09:45:00Z",
+    items: [
+      {
+        id: 5,
+        product_id: 1,
+        product: mockProducts[0],
+        quantity: 25,
+        unit_price: 2500.00,
+        total_price: 62500.00
+      },
+      {
+        id: 6,
+        product_id: 2,
+        product: mockProducts[1],
+        quantity: 15,
+        unit_price: 800.00,
+        total_price: 12000.00
+      }
+    ]
+  },
+  {
+    id: 4,
+    po_number: "PO-20250101-004",
+    supplier_id: 1,
+    supplier: mockSuppliers[0],
+    delivery_address: "123 Ayala Avenue, Makati City, Philippines",
+    notes: "Completed order",
+    status: "Completed",
+    total_amount: 32000.00,
+    date_created: "2025-01-04T16:20:00Z",
+    date_updated: "2025-01-05T10:30:00Z",
+    items: [
+      {
+        id: 7,
+        product_id: 4,
+        product: mockProducts[3],
+        quantity: 80,
+        unit_price: 350.00,
+        total_price: 28000.00
+      },
+      {
+        id: 8,
+        product_id: 2,
+        product: mockProducts[1],
+        quantity: 5,
+        unit_price: 800.00,
+        total_price: 4000.00
+      }
+    ]
+  }
+];
+
 const Orders: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -22,6 +227,7 @@ const Orders: React.FC = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
   const [searchTerm, setSearchTerm] = useState('');
+  const [usingMockData, setUsingMockData] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<CreateOrderData>({
@@ -46,18 +252,41 @@ const Orders: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [ordersData, suppliersData, productsData] = await Promise.all([
-        apiService.getOrders(),
-        apiService.getSuppliers(),
-        apiService.getProducts()
-      ]);
-      setOrders(ordersData);
-      setSuppliers(suppliersData);
-      setProducts(productsData);
+      
+      // Try to fetch from API first
+      try {
+        const [ordersData, suppliersData, productsData] = await Promise.all([
+          apiService.getOrders(),
+          apiService.getSuppliers(),
+          apiService.getProducts()
+        ]);
+        setOrders(ordersData);
+        setSuppliers(suppliersData);
+        setProducts(productsData);
+        setUsingMockData(false);
+      } catch (apiError) {
+        console.log('API not available, using mock data...');
+        // Use mock data if API fails
+        setOrders(mockOrders);
+        setSuppliers(mockSuppliers);
+        setProducts(mockProducts);
+        setUsingMockData(true);
+        
+        // Show warning toast
+        setToastMessage('Using demo data - backend not available');
+        setToastType('warning');
+        setShowToast(true);
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error);
-      setToastMessage('Failed to load data');
-      setToastType('error');
+      // Fallback to mock data
+      setOrders(mockOrders);
+      setSuppliers(mockSuppliers);
+      setProducts(mockProducts);
+      setUsingMockData(true);
+      
+      setToastMessage('Failed to load data, using demo data');
+      setToastType('warning');
       setShowToast(true);
     } finally {
       setLoading(false);
@@ -94,19 +323,52 @@ const Orders: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      if (editingOrder) {
-        await apiService.updateOrder(editingOrder.id, formData);
-        setToastMessage('Purchase order updated successfully');
+      if (usingMockData) {
+        // Simulate API call for mock data
+        const newOrder: PurchaseOrder = {
+          id: orders.length + 1,
+          po_number: `PO-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(orders.length + 1).padStart(3, '0')}`,
+          supplier_id: formData.supplier_id,
+          supplier: suppliers.find(s => s.id === formData.supplier_id)!,
+          delivery_address: formData.delivery_address,
+          notes: formData.notes || '',
+          status: 'Draft',
+          total_amount: formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0),
+          date_created: new Date().toISOString(),
+          date_updated: new Date().toISOString(),
+          items: formData.items.map((item, index) => ({
+            id: index + 1,
+            product_id: item.product_id,
+            product: products.find(p => p.id === item.product_id)!,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.quantity * item.unit_price
+          }))
+        };
+
+        if (editingOrder) {
+          setOrders(orders.map(order => order.id === editingOrder.id ? { ...newOrder, id: editingOrder.id } : order));
+          setToastMessage('Purchase order updated successfully (Demo)');
+        } else {
+          setOrders([...orders, newOrder]);
+          setToastMessage('Purchase order created successfully (Demo)');
+        }
       } else {
-        await apiService.createOrder(formData);
-        setToastMessage('Purchase order created successfully');
+        // Real API call
+        if (editingOrder) {
+          await apiService.updateOrder(editingOrder.id, formData);
+          setToastMessage('Purchase order updated successfully');
+        } else {
+          await apiService.createOrder(formData);
+          setToastMessage('Purchase order created successfully');
+        }
+        fetchData();
       }
       
       setToastType('success');
       setShowToast(true);
       setShowModal(false);
       resetForm();
-      fetchData();
     } catch (error: any) {
       console.error('Failed to save order:', error);
       setToastMessage(error.response?.data?.message || 'Failed to save order');
@@ -117,11 +379,19 @@ const Orders: React.FC = () => {
 
   const handleApprove = async (id: number) => {
     try {
-      await apiService.approveOrder(id);
-      setToastMessage('Purchase order approved successfully');
+      if (usingMockData) {
+        // Simulate approval for mock data
+        setOrders(orders.map(order => 
+          order.id === id ? { ...order, status: 'Approved' as const } : order
+        ));
+        setToastMessage('Purchase order approved successfully (Demo)');
+      } else {
+        await apiService.approveOrder(id);
+        setToastMessage('Purchase order approved successfully');
+        fetchData();
+      }
       setToastType('success');
       setShowToast(true);
-      fetchData();
     } catch (error: any) {
       console.error('Failed to approve order:', error);
       setToastMessage(error.response?.data?.message || 'Failed to approve order');
@@ -134,11 +404,17 @@ const Orders: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this purchase order?')) return;
 
     try {
-      await apiService.deleteOrder(id);
-      setToastMessage('Purchase order deleted successfully');
+      if (usingMockData) {
+        // Simulate deletion for mock data
+        setOrders(orders.filter(order => order.id !== id));
+        setToastMessage('Purchase order deleted successfully (Demo)');
+      } else {
+        await apiService.deleteOrder(id);
+        setToastMessage('Purchase order deleted successfully');
+        fetchData();
+      }
       setToastType('success');
       setShowToast(true);
-      fetchData();
     } catch (error: any) {
       console.error('Failed to delete order:', error);
       setToastMessage(error.response?.data?.message || 'Failed to delete order');
@@ -240,6 +516,9 @@ const Orders: React.FC = () => {
               <h1 className="h2 mb-1">Purchase Orders</h1>
               <p className="text-muted mb-0">
                 Manage purchase orders and track procurement activities
+                {usingMockData && (
+                  <span className="ms-2 badge bg-warning text-dark">Demo Mode</span>
+                )}
               </p>
             </div>
             <Button 
