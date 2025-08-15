@@ -45,9 +45,7 @@ const Dashboard: React.FC = () => {
     } catch (err) {
       console.log('All API endpoints failed, using mock data...');
       setStats(mockDashboardStats);
-      setToastMessage('Using demo data - backend not available');
-      setToastType('warning');
-      setShowToast(true);
+      // No toast notification needed
     } finally {
       setLoading(false);
     }

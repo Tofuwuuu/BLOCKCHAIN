@@ -169,10 +169,7 @@ const Users: React.FC = () => {
         setUsers(mockUsers);
         setUsingMockData(true);
         
-        // Show warning toast
-        setToastMessage('Using demo data - backend not available');
-        setToastType('warning');
-        setShowToast(true);
+        // No toast notification needed
       }
     } catch (error) {
       console.error('Failed to load users:', error);
@@ -180,9 +177,7 @@ const Users: React.FC = () => {
       setUsers(mockUsers);
       setUsingMockData(true);
       
-      setToastMessage('Failed to load users, using demo data');
-      setToastType('warning');
-      setShowToast(true);
+      // No toast notification needed
     } finally {
       setLoading(false);
     }

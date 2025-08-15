@@ -272,10 +272,7 @@ const Orders: React.FC = () => {
         setProducts(mockProducts);
         setUsingMockData(true);
         
-        // Show warning toast
-        setToastMessage('Using demo data - backend not available');
-        setToastType('warning');
-        setShowToast(true);
+        // No toast notification needed
       }
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -285,9 +282,7 @@ const Orders: React.FC = () => {
       setProducts(mockProducts);
       setUsingMockData(true);
       
-      setToastMessage('Failed to load data, using demo data');
-      setToastType('warning');
-      setShowToast(true);
+      // No toast notification needed
     } finally {
       setLoading(false);
     }
