@@ -160,8 +160,8 @@ const Users: React.FC = () => {
       
       // Try to fetch from API first
       try {
-        const response = await apiService.getUsers();
-        setUsers(response);
+      const response = await apiService.getUsers();
+      setUsers(response);
         setUsingMockData(false);
       } catch (apiError) {
         console.log('API not available, using mock data...');
@@ -276,12 +276,12 @@ const Users: React.FC = () => {
           setToastMessage('User updated successfully');
         } else {
           await apiService.createUser({
-            username: formData.username,
-            password: formData.password,
-            full_name: formData.full_name,
-            position: formData.position,
-            department: formData.department,
-            role: formData.role
+        username: formData.username,
+        password: formData.password,
+        full_name: formData.full_name,
+        position: formData.position,
+        department: formData.department,
+        role: formData.role
           });
           setToastMessage('User created successfully');
         }
@@ -311,7 +311,7 @@ const Users: React.FC = () => {
         setUsers(users.filter(u => u.id !== userId));
         setToastMessage('User deleted successfully (Demo)');
       } else {
-        await apiService.deleteUser(userId);
+      await apiService.deleteUser(userId);
         setToastMessage('User deleted successfully');
         fetchUsers();
       }
@@ -413,9 +413,9 @@ const Users: React.FC = () => {
               aria-label="Add new user"
             >
               <i className="bi bi-plus-circle me-2"></i>
-              Add User
+          Add User
             </Button>
-          </div>
+      </div>
         </Col>
       </Row>
 
@@ -427,7 +427,7 @@ const Users: React.FC = () => {
               <i className="bi bi-search"></i>
             </InputGroup.Text>
             <Form.Control
-              type="text"
+                    type="text"
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
