@@ -95,28 +95,62 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </Nav.Link>
                 
                 {user?.is_admin && (
-                  <Dropdown as={Nav.Item}>
-                    <Dropdown.Toggle as={Nav.Link} className="d-flex align-items-center">
-                      <i className="bi bi-file-text me-2"></i>
-                      Reports
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      <Dropdown.Item as={Link} to="/reports/audit">
-                        <i className="bi bi-clock-history me-2"></i>
-                        Audit Trail
-                      </Dropdown.Item>
-                      <Dropdown.Item as={Link} to="/reports/bir">
-                        <i className="bi bi-file-earmark-text me-2"></i>
-                        BIR Reports
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                  <Nav.Link 
+                    as={Link} 
+                    to="/users" 
+                    active={isActive('/users')}
+                    className="d-flex align-items-center"
+                  >
+                    <i className="bi bi-people me-2"></i>
+                    Users
+                  </Nav.Link>
                 )}
+                
+                {/* Reports dropdown - accessible to all authenticated users */}
+                <Dropdown as={Nav.Item} className="d-flex align-items-center">
+                  <Dropdown.Toggle 
+                    as={Nav.Link} 
+                    className="d-flex align-items-center"
+                  >
+                    <i className="bi bi-file-text me-2"></i>
+                    Reports
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item as={Link} to="/reports/audit">
+                      <i className="bi bi-clock-history me-2"></i>
+                      Audit Trail
+                    </Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/reports/bir">
+                      <i className="bi bi-file-earmark-text me-2"></i>
+                      BIR Reports
+                    </Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/reports/inventory">
+                      <i className="bi bi-box-seam me-2"></i>
+                      Inventory Reports
+                    </Dropdown.Item>
+                    <Dropdown.Item as={Link} to="/reports/orders">
+                      <i className="bi bi-cart me-2"></i>
+                      Order Reports
+                    </Dropdown.Item>
+                    {user?.is_admin && (
+                      <>
+                        <Dropdown.Divider />
+                        <Dropdown.Item as={Link} to="/reports/system">
+                          <i className="bi bi-gear me-2"></i>
+                          System Reports
+                        </Dropdown.Item>
+                      </>
+                    )}
+                  </Dropdown.Menu>
+                </Dropdown>
               </Nav>
               
               <Nav className="ms-auto" role="navigation" aria-label="User navigation">
-                <Dropdown as={Nav.Item}>
-                  <Dropdown.Toggle as={Nav.Link} className="d-flex align-items-center">
+                <Dropdown as={Nav.Item} className="d-flex align-items-center">
+                  <Dropdown.Toggle 
+                    as={Nav.Link} 
+                    className="d-flex align-items-center"
+                  >
                     <i className="bi bi-person-circle me-2"></i>
                     <span>{user?.full_name || 'User'}</span>
                     {user?.is_admin && (
@@ -128,6 +162,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       <i className="bi bi-person me-2"></i>
                       Profile
                     </Dropdown.Item>
+                    {user?.is_admin && (
+                      <Dropdown.Item as={Link} to="/settings">
+                        <i className="bi bi-gear me-2"></i>
+                        Settings
+                      </Dropdown.Item>
+                    )}
                     <Dropdown.Divider />
                     <Dropdown.Item onClick={handleLogout}>
                       <i className="bi bi-box-arrow-right me-2"></i>

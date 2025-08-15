@@ -24,6 +24,11 @@ const Login: React.FC = () => {
     username: '',
     password: ''
   });
+  
+  // Debug form data changes
+  useEffect(() => {
+    console.log('📊 Form data changed:', formData);
+  }, [formData]);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -31,9 +36,16 @@ const Login: React.FC = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log('🔄 Login component useEffect triggered');
+    console.log('🔐 isAuthenticated:', isAuthenticated);
+    console.log('⏳ authLoading:', authLoading);
+    
     if (isAuthenticated && !authLoading) {
       const from = location.state?.from?.pathname || '/dashboard';
+      console.log('🎯 User is authenticated, redirecting to:', from);
       navigate(from, { replace: true });
+    } else {
+      console.log('⏸️ Not redirecting - isAuthenticated:', isAuthenticated, 'authLoading:', authLoading);
     }
   }, [isAuthenticated, authLoading, navigate, location]);
 
@@ -48,31 +60,52 @@ const Login: React.FC = () => {
   }, [formData, errors]);
 
   const validateForm = (): boolean => {
+    console.log('🔍 Starting form validation...');
+    console.log('📝 Username:', formData.username, 'Length:', formData.username?.length);
+    console.log('🔑 Password:', formData.password ? '***' : 'empty', 'Length:', formData.password?.length);
+    
     const newErrors: LoginErrors = {};
 
     // Username validation
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
+      console.log('❌ Username validation failed: empty');
     } else if (formData.username.trim().length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
+      console.log('❌ Username validation failed: too short');
+    } else {
+      console.log('✅ Username validation passed');
     }
 
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      console.log('❌ Password validation failed: empty');
+    } else if (formData.password.length < 5) {
+      newErrors.password = 'Password must be at least 5 characters';
+      console.log('❌ Password validation failed: too short');
+    } else {
+      console.log('✅ Password validation passed');
     }
 
+    console.log('📊 Validation errors:', newErrors);
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('🎯 Form validation result:', isValid);
+    return isValid;
   };
 
   const handleInputChange = (field: keyof LoginFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log('📝 Input change:', field, 'Value:', value, 'Length:', value?.length);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      console.log('🔄 Updated form data:', newData);
+      return newData;
+    });
     
     // Clear field-specific error when user starts typing
     if (errors[field]) {
+      console.log('🧹 Clearing error for:', field);
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
@@ -80,27 +113,35 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('📝 Login form submitted');
+    console.log('🔑 Form data:', { username: formData.username, password: formData.password ? '***' : 'empty' });
+    
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
       return;
     }
 
     try {
+      console.log('🚀 Starting login process...');
       setLoading(true);
       setErrors({});
 
       // Call the login function from AuthContext
+      console.log('📡 Calling AuthContext.login...');
       await login(formData.username.trim(), formData.password);
+      console.log('✅ AuthContext.login completed successfully');
       
       // If remember me is checked, we could implement additional logic here
       if (rememberMe) {
         // Could set a longer token expiration or additional storage
-        console.log('Remember me enabled');
+        console.log('💾 Remember me enabled');
       }
 
+      console.log('🎯 Login successful, should redirect to dashboard');
       // Navigation will be handled by the useEffect above
       
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Login error in component:', error);
       
       // Handle different types of errors
       if (error.response?.status === 401) {
@@ -115,6 +156,7 @@ const Login: React.FC = () => {
         setErrors({ general: 'Login failed. Please try again.' });
       }
     } finally {
+      console.log('🏁 Login process completed, setting loading to false');
       setLoading(false);
     }
   };

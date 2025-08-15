@@ -8,6 +8,8 @@ import Suppliers from './pages/Suppliers';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Inventory from './pages/Inventory';
+import Users from './pages/Users';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
@@ -16,23 +18,33 @@ import './App.css';
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
+  console.log('🛡️ ProtectedRoute render - isAuthenticated:', isAuthenticated, 'loading:', loading);
+
   if (loading) {
+    console.log('⏳ ProtectedRoute loading, showing spinner');
     return <LoadingSpinner size="lg" text="Loading..." />;
   }
 
   if (!isAuthenticated) {
+    console.log('❌ ProtectedRoute: User not authenticated, redirecting to /login');
     return <Navigate to="/login" replace />;
   }
 
+  console.log('✅ ProtectedRoute: User authenticated, rendering children');
   return <>{children}</>;
 };
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
 
+  console.log('🏠 App component render - isAuthenticated:', isAuthenticated, 'loading:', loading);
+
   if (loading) {
+    console.log('⏳ App is loading, showing spinner');
     return <LoadingSpinner size="lg" text="Loading application..." />;
   }
+
+  console.log('✅ App loaded, isAuthenticated:', isAuthenticated);
 
   return (
     <div className="App">
@@ -41,7 +53,17 @@ function App() {
         <Route 
           path="/login" 
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+            isAuthenticated ? (
+              (() => {
+                console.log('🔄 User is authenticated, redirecting from /login to /dashboard');
+                return <Navigate to="/dashboard" replace />;
+              })()
+            ) : (
+              (() => {
+                console.log('📝 User not authenticated, showing Login component');
+                return <Login />;
+              })()
+            )
           } 
         />
 
@@ -118,6 +140,28 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Inventory />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Users />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
               </Layout>
             </ProtectedRoute>
           }

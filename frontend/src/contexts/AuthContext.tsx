@@ -23,26 +23,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('🔍 Checking authentication status...');
         const token = localStorage.getItem('authToken');
+        console.log('🔑 Token in localStorage:', token ? 'Present' : 'None');
+        
         if (token) {
           try {
+            console.log('📡 Calling getCurrentUser API...');
             // Try to get current user from API
             const userData = await apiService.getCurrentUser();
+            console.log('✅ getCurrentUser API response:', userData);
             setUser(userData);
+            console.log('👤 User state set from API');
           } catch (error) {
-            console.log('Auth API failed, clearing token...');
+            console.log('❌ Auth API failed, clearing token...', error);
             localStorage.removeItem('authToken');
             setUser(null);
           }
         } else {
           // No token, user is not authenticated
+          console.log('🚫 No token found, user not authenticated');
           setUser(null);
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error('❌ Auth check failed:', error);
         localStorage.removeItem('authToken');
         setUser(null);
       } finally {
+        console.log('🏁 Authentication check completed');
         setLoading(false);
       }
     };
@@ -52,18 +60,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string) => {
     try {
+      console.log('🔐 Attempting login for:', username);
+      
       // Call the backend login endpoint
       const response = await apiService.login({ username, password });
+      console.log('✅ Login API response:', response);
       
       // Store the token
       localStorage.setItem('authToken', response.token);
+      console.log('💾 Token stored in localStorage');
       
       // Set the user data
       setUser(response.user);
+      console.log('👤 User state updated:', response.user);
       
-      console.log('Login successful:', response.user.username);
+      console.log('🎉 Login successful:', response.user.username);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ Login failed:', error);
       throw error; // Re-throw to let the component handle the error
     }
   };
