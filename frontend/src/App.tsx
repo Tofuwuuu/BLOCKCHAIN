@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { initZeroCountHiding } from './utils';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Blockchain from './pages/Blockchain';
@@ -12,6 +13,7 @@ import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import ItemManagement from './pages/ItemManagement';
+import AuditLogs from './pages/AuditLogs';
 import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 
@@ -58,6 +60,12 @@ function App() {
   const { isAuthenticated, loading } = useAuth();
 
   console.log('🏠 App component render - isAuthenticated:', isAuthenticated, 'loading:', loading);
+
+  // Initialize zero count hiding globally
+  useEffect(() => {
+    const cleanup = initZeroCountHiding();
+    return cleanup;
+  }, []);
 
   if (loading) {
     console.log('⏳ App is loading, showing spinner');
@@ -205,6 +213,17 @@ function App() {
             <AdminRoute>
               <Layout>
                 <ItemManagement />
+              </Layout>
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/audit-logs"
+          element={
+            <AdminRoute>
+              <Layout>
+                <AuditLogs />
               </Layout>
             </AdminRoute>
           }

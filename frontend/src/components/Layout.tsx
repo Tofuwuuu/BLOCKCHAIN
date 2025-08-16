@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Navbar, Nav, Container, Dropdown, Badge } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { initZeroCountHiding } from '../utils';
 import logo from '../image/system logo-03.png';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -18,31 +19,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
-  // Hide notification badges that show "0"
-  useEffect(() => {
-    const hideZeroNotifications = () => {
-      // Find all elements that might be notification badges showing "0"
-      const elements = document.querySelectorAll('*');
-      elements.forEach(element => {
-        if (element.textContent === '0' && 
-            (element.classList.contains('badge') || 
-             element.classList.contains('notification') ||
-             element.getAttribute('data-count') === '0')) {
-          if (element instanceof HTMLElement) {
-            element.style.display = 'none';
-          }
-        }
-      });
-    };
-
-    // Run on mount and after a short delay to catch dynamic content
-    hideZeroNotifications();
-    const timer = setTimeout(hideZeroNotifications, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
   const isActive = (path: string) => location.pathname === path;
+
+  // Hide any "0" counts in navigation
+  useEffect(() => {
+    const cleanup = initZeroCountHiding();
+    return cleanup;
+  }, []);
 
   if (!isAuthenticated) {
     return <>{children}</>;

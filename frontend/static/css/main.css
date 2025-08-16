@@ -17,4 +17,44 @@ body { background-color: #f8f9fa; }
   display: none !important;
 }
 
+/* Hide any elements that might be showing "0" as notifications */
+.zero-notification {
+  display: none !important;
+}
+
+/* Hide any "0" counts in navigation */
+.nav-item-custom:has(span:contains("0")),
+.nav-item-custom span:contains("0"),
+.nav-item-custom:has(.badge:contains("0")),
+.nav-item-custom .badge:contains("0") {
+  display: none !important;
+}
+
+/* Hide any "0" text in navigation items */
+.nav-item-custom:has(span:contains("0")) span:contains("0"),
+.nav-item-custom:has(.badge:contains("0")) .badge:contains("0") {
+  display: none !important;
+}
+
+/* Additional rule to hide any "0" counts */
+.nav-item-custom:has(*:contains("0")) *:contains("0"),
+.nav-item-custom *:contains("0") {
+  display: none !important;
+}
+
+/* Hide any elements with "0" content in navigation */
+.nav-item-custom:has([data-count="0"]),
+.nav-item-custom [data-count="0"],
+.nav-item-custom:has(.count-0),
+.nav-item-custom .count-0 {
+  display: none !important;
+}
+
+/* Hide any "0" counts that might be added by JavaScript or other means */
+.nav-item-custom:has(span:contains("0")) span:contains("0"),
+.nav-item-custom:has(.badge:contains("0")) .badge:contains("0"),
+.nav-item-custom:has(div:contains("0")) div:contains("0") {
+  display: none !important;
+}
+
 

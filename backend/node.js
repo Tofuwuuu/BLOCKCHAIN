@@ -483,6 +483,39 @@ export class BlockchainNode {
       }
     });
 
+    // Audit logs endpoint
+    this.app.get('/api/audit-logs', async (req, res) => {
+      try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+        
+        // Get filters from query parameters
+        const filters = {
+          action: req.query.action || '',
+          table_name: req.query.table_name || '',
+          username: req.query.username || '',
+          date_from: req.query.date_from || '',
+          date_to: req.query.date_to || ''
+        };
+
+        // Get audit logs from database
+        const auditLogs = await this.database.getAuditLogs(filters, limit, offset);
+        const totalCount = await this.database.getAuditLogsCount(filters);
+
+        res.json({
+          logs: auditLogs,
+          total: totalCount,
+          page: page,
+          limit: limit,
+          totalPages: Math.ceil(totalCount / limit)
+        });
+      } catch (error) {
+        console.error('Error getting audit logs:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // Node status
     this.app.get('/status', (req, res) => {
       const consensusInfo = this.consensus.getConsensusInfo();

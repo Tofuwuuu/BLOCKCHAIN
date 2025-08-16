@@ -55,6 +55,23 @@ class Database {
         )
       `);
 
+      // Create audit_logs table for tracking system changes
+      await this.db.exec(`
+        CREATE TABLE IF NOT EXISTS audit_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          action TEXT NOT NULL,
+          table_name TEXT NOT NULL,
+          record_id INTEGER NOT NULL,
+          old_values TEXT,
+          new_values TEXT,
+          ip_address TEXT,
+          user_agent TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+      `);
+
       // Create system settings table
       await this.db.exec(`
         CREATE TABLE IF NOT EXISTS system_settings (
@@ -1049,8 +1066,205 @@ class Database {
       }
 
       console.log('📦 Sample inventory data seeded successfully');
+
+      // Seed sample audit logs
+      await this.seedAuditLogs();
     } catch (error) {
       console.error('❌ Failed to seed inventory data:', error);
+    }
+  }
+
+  async seedAuditLogs() {
+    try {
+      // Get admin user ID for audit logs
+      const adminUser = await this.db.get('SELECT id FROM users WHERE username = ?', ['admin']);
+      if (!adminUser) return;
+
+      const sampleAuditLogs = [
+        {
+          action: 'create',
+          table_name: 'users',
+          record_id: 1,
+          old_values: null,
+          new_values: JSON.stringify({ username: 'admin', role: 'admin', is_admin: 1 }),
+          ip_address: '192.168.1.100',
+          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        {
+          action: 'update',
+          table_name: 'system_settings',
+          record_id: 1,
+          old_values: JSON.stringify({ company_name: 'Old Company Name' }),
+          new_values: JSON.stringify({ company_name: 'Philippine Procurement Solutions' }),
+          ip_address: '192.168.1.100',
+          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        {
+          action: 'create',
+          table_name: 'suppliers',
+          record_id: 1,
+          old_values: null,
+          new_values: JSON.stringify({ name: 'ABC Corporation', contact_person: 'John Doe' }),
+          ip_address: '192.168.1.101',
+          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        {
+          action: 'login',
+          table_name: 'users',
+          record_id: 1,
+          old_values: null,
+          new_values: JSON.stringify({ login_time: new Date().toISOString() }),
+          ip_address: '192.168.1.102',
+          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        {
+          action: 'delete',
+          table_name: 'products',
+          record_id: 5,
+          old_values: JSON.stringify({ name: 'Old Product', category: 'General' }),
+          new_values: null,
+          ip_address: '192.168.1.103',
+          user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      ];
+
+      for (const log of sampleAuditLogs) {
+        await this.db.run(`
+          INSERT INTO audit_logs (user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-' || ? || ' hours'))
+        `, [
+          adminUser.id,
+          log.action,
+          log.table_name,
+          log.record_id,
+          log.old_values,
+          log.new_values,
+          log.ip_address,
+          log.user_agent,
+          Math.floor(Math.random() * 168) // Random hours in the past week
+        ]);
+      }
+
+      console.log('📋 Sample audit logs seeded successfully');
+    } catch (error) {
+      console.error('❌ Failed to seed audit logs:', error);
+    }
+  }
+
+  // Audit logs methods
+  async getAuditLogs(filters = {}, limit = 20, offset = 0) {
+    try {
+      let query = `
+        SELECT 
+          al.id,
+          al.user_id,
+          u.username,
+          al.action,
+          al.table_name,
+          al.record_id,
+          al.old_values,
+          al.new_values,
+          al.ip_address,
+          al.user_agent,
+          al.created_at
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        WHERE 1=1
+      `;
+      
+      const params = [];
+      
+      if (filters.action) {
+        query += ` AND al.action LIKE ?`;
+        params.push(`%${filters.action}%`);
+      }
+      
+      if (filters.table_name) {
+        query += ` AND al.table_name LIKE ?`;
+        params.push(`%${filters.table_name}%`);
+      }
+      
+      if (filters.username) {
+        query += ` AND u.username LIKE ?`;
+        params.push(`%${filters.username}%`);
+      }
+      
+      if (filters.date_from) {
+        query += ` AND DATE(al.created_at) >= ?`;
+        params.push(filters.date_from);
+      }
+      
+      if (filters.date_to) {
+        query += ` AND DATE(al.created_at) <= ?`;
+        params.push(filters.date_to);
+      }
+      
+      query += ` ORDER BY al.created_at DESC LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+      
+      const logs = await this.db.all(query, params);
+      return logs;
+    } catch (error) {
+      console.error('Error getting audit logs:', error);
+      throw error;
+    }
+  }
+
+  async getAuditLogsCount(filters = {}) {
+    try {
+      let query = `
+        SELECT COUNT(*) as count
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        WHERE 1=1
+      `;
+      
+      const params = [];
+      
+      if (filters.action) {
+        query += ` AND al.action LIKE ?`;
+        params.push(`%${filters.action}%`);
+      }
+      
+      if (filters.table_name) {
+        query += ` AND al.table_name LIKE ?`;
+        params.push(`%${filters.table_name}%`);
+      }
+      
+      if (filters.username) {
+        query += ` AND u.username LIKE ?`;
+        params.push(`%${filters.username}%`);
+      }
+      
+      if (filters.date_from) {
+        query += ` AND DATE(al.created_at) >= ?`;
+        params.push(filters.date_from);
+      }
+      
+      if (filters.date_to) {
+        query += ` AND DATE(al.created_at) <= ?`;
+        params.push(filters.date_to);
+      }
+      
+      const result = await this.db.get(query, params);
+      return result.count || 0;
+    } catch (error) {
+      console.error('Error getting audit logs count:', error);
+      throw error;
+    }
+  }
+
+  async createAuditLog(userId, action, tableName, recordId, oldValues = null, newValues = null, ipAddress = null, userAgent = null) {
+    try {
+      const result = await this.db.run(`
+        INSERT INTO audit_logs (user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `, [userId, action, tableName, recordId, oldValues, newValues, ipAddress, userAgent]);
+      
+      return result.lastID;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      throw error;
     }
   }
 

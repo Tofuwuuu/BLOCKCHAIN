@@ -307,3 +307,59 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ph-dark-blue);
 }
+
+/* ===== HIDE ZERO COUNTS IN NAVIGATION ===== */
+/* Hide any "0" counts that might appear in navigation items */
+.nav-item-custom:has(span:contains("0")) span:contains("0"),
+.nav-item-custom:has(.badge:contains("0")) .badge:contains("0"),
+.nav-item-custom:has(div:contains("0")) div:contains("0") {
+  display: none !important;
+}
+
+/* Hide any elements with "0" content in navigation */
+.nav-item-custom:has([data-count="0"]),
+.nav-item-custom [data-count="0"],
+.nav-item-custom:has(.count-0),
+.nav-item-custom .count-0 {
+  display: none !important;
+}
+
+/* Hide any "0" text that might be added dynamically */
+.nav-item-custom:has(*:contains("0")) *:contains("0"),
+.nav-item-custom *:contains("0") {
+  display: none !important;
+}
+
+/* Additional rule for any "0" counts in the entire navigation */
+.navbar-nav:has(*:contains("0")) *:contains("0"),
+.navbar-nav *:contains("0") {
+  display: none !important;
+}
+
+/* Hide any notification counts that are "0" */
+.notification-count[data-count="0"],
+.notification-count:contains("0"),
+.badge[data-count="0"],
+.badge:contains("0") {
+  display: none !important;
+}
+
+/* More specific targeting for any "0" text in navigation */
+.nav-item-custom span:contains("0"),
+.nav-item-custom .badge:contains("0"),
+.nav-item-custom div:contains("0"),
+.nav-item-custom:contains("0") {
+  display: none !important;
+}
+
+/* Hide any elements that contain only "0" as text */
+.nav-item-custom *:only-child:contains("0"),
+.nav-item-custom *:contains("0"):not(:contains("1")):not(:contains("2")):not(:contains("3")):not(:contains("4")):not(:contains("5")):not(:contains("6")):not(:contains("7")):not(:contains("8")):not(:contains("9")) {
+  display: none !important;
+}
+
+/* Additional rule to hide any "0" counts in the entire navbar */
+.navbar:has(*:contains("0")) *:contains("0"),
+.navbar *:contains("0") {
+  display: none !important;
+}
