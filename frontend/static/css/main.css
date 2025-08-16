@@ -3,4 +3,18 @@ body { background-color: #f8f9fa; }
 .table thead th { white-space: nowrap; }
 .form-label { font-weight: 500; }
 
+/* Hide notification badges that show "0" */
+.hide-zero-notifications {
+  display: none !important;
+}
+
+/* Style for notification badges */
+.notification-badge {
+  position: relative;
+}
+
+.notification-badge[data-count="0"] {
+  display: none !important;
+}
+
 
