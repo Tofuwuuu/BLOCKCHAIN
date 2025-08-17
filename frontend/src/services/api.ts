@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig } f
 // API base configuration
 // Use proxy in development (package.json "proxy"), otherwise honor env var
 const isDev = process.env.NODE_ENV !== 'production';
-const API_BASE_URL = isDev ? '' : (process.env.REACT_APP_API_URL || 'https://your-api.example.com');
+const API_BASE_URL = isDev ? 'http://localhost:3003' : (process.env.REACT_APP_API_URL || 'https://your-api.example.com');
 
 // Create axios instance with default config
 const api: AxiosInstance = axios.create({

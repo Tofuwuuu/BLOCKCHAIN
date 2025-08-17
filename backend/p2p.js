@@ -68,7 +68,14 @@ export class P2PNetwork extends EventEmitter {
   }
 
   async startSocketIOServer() {
+    console.log('🔍 P2P: startSocketIOServer called');
+    console.log('🔍 P2P: this.httpServer exists:', !!this.httpServer);
+    console.log('🔍 P2P: this.httpServer.listening:', this.httpServer ? this.httpServer.listening : 'N/A');
+    console.log('🔍 P2P: this.port:', this.port);
+    console.log('🔍 P2P: this.host:', this.host);
+    
     if (!this.httpServer) {
+      console.log('🔍 P2P: Creating new HTTP server');
       this.httpServer = createServer();
     }
     
@@ -83,13 +90,18 @@ export class P2PNetwork extends EventEmitter {
       this.handleSocketConnection(socket);
     });
 
-    // Only start listening if we created the server
-    if (!this.httpServer.listening) {
+    // If we have an external HTTP server, don't start listening
+    // The external server should handle the listening
+    if (this.httpServer && this.httpServer.listening) {
+      console.log(`Socket.IO attached to existing HTTP server on ${this.host}:${this.port}`);
+    } else if (this.httpServer && !this.httpServer.listening) {
+      // Only start listening if we created the server and it's not already listening
+      console.log('🔍 P2P: Starting HTTP server listening...');
       this.httpServer.listen(this.port, this.host, () => {
         console.log(`Socket.IO server listening on ${this.host}:${this.port}`);
       });
     } else {
-      console.log(`Socket.IO attached to existing HTTP server on ${this.host}:${this.port}`);
+      console.log(`Socket.IO server ready but not listening (external server will handle it)`);
     }
   }
 

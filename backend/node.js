@@ -1,3 +1,5 @@
+console.log('🔍 node.js file is being loaded...');
+
 import express from 'express';
 import cors from 'cors';
 import { Blockchain, Transaction } from './blockchain.js';
@@ -20,15 +22,8 @@ export class BlockchainNode {
     
     // Initialize components
     this.blockchain = new Blockchain();
-    this.p2pNetwork = new P2PNetwork(this.port, this.host, this.httpServer);
-    this.contractValidator = new ContractValidator();
-    this.consensus = new Consensus(this.blockchain, this.p2pNetwork);
-    this.database = new Database();
     
-    // JWT secret
-    this.jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-    
-    // Express app setup
+    // Express app setup - create HTTP server first
     this.app = express();
     this.httpServer = createServer(this.app);
     this.io = new Server(this.httpServer, {
@@ -37,6 +32,15 @@ export class BlockchainNode {
         methods: ["GET", "POST"]
       }
     });
+    
+    // Now create P2P network with the HTTP server
+    this.p2pNetwork = new P2PNetwork(this.port, this.host, this.httpServer);
+    this.contractValidator = new ContractValidator();
+    this.consensus = new Consensus(this.blockchain, this.p2pNetwork);
+    this.database = new Database();
+    
+    // JWT secret
+    this.jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -143,7 +147,7 @@ export class BlockchainNode {
         console.error('Error mining block:', error);
         res.status(500).json({ error: error.message });
       }
-      });
+    });
 
     // Peer management endpoints
     this.app.get('/peers', (req, res) => {
@@ -193,327 +197,6 @@ export class BlockchainNode {
     // Contract information
     this.app.get('/contracts', (req, res) => {
       res.json(this.contractValidator.getContractInfo());
-    });
-
-    // ===== PROCUREMENT API ENDPOINTS =====
-    
-    // Dashboard statistics
-    this.app.get('/api/stats', (req, res) => {
-      try {
-        const stats = {
-          pending_orders: this.blockchain.pendingTransactions.filter(tx => 
-            tx.action === 'order_created' || tx.action === 'order_approved'
-          ).length,
-          approved_orders: this.blockchain.chain.reduce((count, block) => {
-            return count + block.transactions.filter(tx => 
-              tx.action === 'order_approved'
-            ).length;
-          }, 0),
-          low_inventory: this.blockchain.chain.reduce((count, block) => {
-            return count + block.transactions.filter(tx => 
-              tx.action === 'inventory_adjusted' && tx.data?.adjustment < 0
-            ).length;
-          }, 0),
-          recent_orders: this.blockchain.chain.slice(-5).flatMap(block => 
-            block.transactions.filter(tx => 
-              tx.action === 'order_created' || tx.action === 'order_approved'
-            ).map(tx => ({
-              id: tx.hash.substring(0, 8),
-              po_number: tx.data?.order_id || `PO-${tx.hash.substring(0, 8)}`,
-              supplier: { name: tx.to || 'Unknown Supplier' },
-              date_created: new Date(tx.timestamp).toISOString(),
-              status: tx.action === 'order_approved' ? 'Approved' : 'Pending',
-              total_amount: tx.amount || 0
-            }))
-          ).slice(0, 5)
-        };
-        
-        res.json(stats);
-      } catch (error) {
-        console.error('Error getting stats:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    // Authentication endpoints
-    this.app.post('/api/auth/login', async (req, res) => {
-      try {
-        const { username, password } = req.body;
-        
-        if (!username || !password) {
-          return res.status(400).json({ error: 'Username and password are required' });
-        }
-
-        // Authenticate user with database
-        const user = await this.database.authenticateUser(username, password);
-        
-        if (!user) {
-          return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        // Generate JWT token
-        const token = jwt.sign(
-          { userId: user.id, username: user.username },
-          this.jwtSecret,
-          { expiresIn: '24h' }
-        );
-
-        // Create session in database
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-        await this.database.createSession(user.id, token, expiresAt);
-        
-        res.json({
-          user: {
-            id: user.id,
-            username: user.username,
-            full_name: user.full_name,
-            position: user.position,
-            department: user.department,
-            is_admin: user.is_admin
-          },
-          token,
-          message: 'Login successful'
-        });
-      } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Login failed' });
-      }
-    });
-
-    this.app.post('/api/auth/logout', async (req, res) => {
-      try {
-        const token = req.headers.authorization?.replace('Bearer ', '');
-        
-        if (token) {
-          await this.database.deleteSession(token);
-        }
-        
-        res.json({ message: 'Logout successful' });
-      } catch (error) {
-        console.error('Logout error:', error);
-        res.status(500).json({ error: 'Logout failed' });
-      }
-    });
-
-    this.app.get('/api/auth/me', async (req, res) => {
-      try {
-        const token = req.headers.authorization?.replace('Bearer ', '');
-        
-        if (!token) {
-          return res.status(401).json({ error: 'No token provided' });
-        }
-
-        // Validate session and get user data
-        const user = await this.database.validateSession(token);
-        
-        if (!user) {
-          return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        res.json({
-          id: user.id,
-          username: user.username,
-          full_name: user.full_name,
-          position: user.position,
-          department: user.department,
-          is_admin: user.is_admin
-        });
-      } catch (error) {
-        console.error('Get user error:', error);
-        res.status(500).json({ error: 'Failed to get user data' });
-      }
-    });
-
-    // Suppliers endpoints
-    this.app.get('/api/suppliers', (req, res) => {
-      try {
-        const suppliers = this.blockchain.chain.flatMap(block => 
-          block.transactions.filter(tx => tx.action === 'supplier_registered')
-        ).map(tx => ({
-          id: tx.hash.substring(0, 8),
-          name: tx.data?.name || 'Unknown Supplier',
-          address: tx.data?.address || '',
-          province: tx.data?.province || '',
-          contact_person: tx.data?.contact_person || '',
-          phone: tx.data?.phone || '',
-          email: tx.data?.email || '',
-          bir_tin: tx.data?.bir_tin || '',
-          is_active: true,
-          created_at: new Date(tx.timestamp).toISOString(),
-          updated_at: new Date(tx.timestamp).toISOString()
-        }));
-        
-        res.json(suppliers);
-      } catch (error) {
-        console.error('Error getting suppliers:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    // Orders endpoints
-    this.app.get('/api/orders', (req, res) => {
-      try {
-        const orders = this.blockchain.chain.flatMap(block => 
-          block.transactions.filter(tx => 
-            tx.action === 'order_created' || tx.action === 'order_approved'
-          )
-        ).map(tx => ({
-          id: tx.hash.substring(0, 8),
-          po_number: tx.data?.order_id || `PO-${tx.hash.substring(0, 8)}`,
-          supplier_id: tx.data?.supplier_id || 1,
-          supplier: { name: tx.to || 'Unknown Supplier' },
-          delivery_address: tx.data?.delivery_address || '',
-          notes: tx.data?.notes || '',
-          status: tx.action === 'order_approved' ? 'Approved' : 'Pending',
-          total_amount: tx.amount || 0,
-          date_created: new Date(tx.timestamp).toISOString(),
-          date_updated: new Date(tx.timestamp).toISOString(),
-          items: tx.data?.items || []
-        }));
-        
-        res.json(orders);
-      } catch (error) {
-        console.error('Error getting orders:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    // Inventory endpoints
-    this.app.get('/api/inventory', async (req, res) => {
-      try {
-        const inventory = await this.database.getAllInventory();
-        res.json(inventory);
-      } catch (error) {
-        console.error('Error getting inventory:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    this.app.post('/api/inventory/adjust', async (req, res) => {
-      try {
-        const { product_id, adjustment, reason } = req.body;
-        const userId = req.user?.id || 1; // Default to admin if no user context
-
-        if (!product_id || adjustment === undefined || !reason) {
-          return res.status(400).json({ error: 'Product ID, adjustment, and reason are required' });
-        }
-
-        const updatedInventory = await this.database.adjustInventory(product_id, adjustment, reason, userId);
-        
-        // Create blockchain transaction for audit trail
-        const transaction = {
-          from: req.user?.username || 'system',
-          to: 'blockchain',
-          amount: 0,
-          action: 'inventory_adjusted',
-          data: {
-            product_id: product_id,
-            product_name: updatedInventory.product_name,
-            adjustment: adjustment,
-            reason: reason,
-            previous_quantity: updatedInventory.quantity - adjustment,
-            new_quantity: updatedInventory.quantity,
-            adjusted_by: req.user?.username || 'system'
-          }
-        };
-
-        this.blockchain.addTransaction(transaction);
-        
-        res.json(updatedInventory);
-      } catch (error) {
-        console.error('Error adjusting inventory:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    // Products endpoints
-    this.app.get('/api/products', async (req, res) => {
-      try {
-        const products = await this.database.getAllProducts();
-        res.json(products);
-      } catch (error) {
-        console.error('Error getting products:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    this.app.post('/api/products', async (req, res) => {
-      try {
-        const { name, description, unit, unit_price, category } = req.body;
-        
-        if (!name || !unit_price) {
-          return res.status(400).json({ error: 'Product name and unit price are required' });
-        }
-
-        const productData = {
-          name,
-          description: description || '',
-          unit: unit || 'pcs',
-          unit_price: parseFloat(unit_price),
-          category: category || 'General'
-        };
-
-        const newProduct = await this.database.createProduct(productData);
-        
-        // Add to inventory with 0 quantity
-        await this.database.addProductToInventory(newProduct.id, 0);
-        
-        // Create blockchain transaction
-        const transaction = {
-          from: req.user?.username || 'system',
-          to: 'blockchain',
-          amount: 0,
-          action: 'product_created',
-          data: {
-            product_id: newProduct.id,
-            name: newProduct.name,
-            description: newProduct.description,
-            unit: newProduct.unit,
-            unit_price: newProduct.unit_price,
-            category: newProduct.category
-          }
-        };
-
-        this.blockchain.addTransaction(transaction);
-        
-        res.json(newProduct);
-      } catch (error) {
-        console.error('Error creating product:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
-
-    // Audit logs endpoint
-    this.app.get('/api/audit-logs', async (req, res) => {
-      try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        const offset = (page - 1) * limit;
-        
-        // Get filters from query parameters
-        const filters = {
-          action: req.query.action || '',
-          table_name: req.query.table_name || '',
-          username: req.query.username || '',
-          date_from: req.query.date_from || '',
-          date_to: req.query.date_to || ''
-        };
-
-        // Get audit logs from database
-        const auditLogs = await this.database.getAuditLogs(filters, limit, offset);
-        const totalCount = await this.database.getAuditLogsCount(filters);
-
-        res.json({
-          logs: auditLogs,
-          total: totalCount,
-          page: page,
-          limit: limit,
-          totalPages: Math.ceil(totalCount / limit)
-        });
-      } catch (error) {
-        console.error('Error getting audit logs:', error);
-        res.status(500).json({ error: error.message });
-      }
     });
 
     // Node status
@@ -592,10 +275,420 @@ export class BlockchainNode {
       }
     });
 
-    // Error handling middleware
-    this.app.use((err, req, res, next) => {
-      console.error('Express error:', err);
-      res.status(500).json({ error: 'Internal server error' });
+    // ===== PROCUREMENT API ENDPOINTS =====
+    
+    // Dashboard statistics
+    this.app.get('/api/stats', (req, res) => {
+      try {
+        const stats = {
+          pending_orders: this.blockchain.pendingTransactions.filter(tx => 
+            tx.action === 'order_created' || tx.action === 'order_approved'
+          ).length,
+          approved_orders: this.blockchain.chain.reduce((count, block) => {
+            return count + block.transactions.filter(tx => 
+              tx.action === 'order_approved'
+            ).length;
+          }, 0),
+          low_inventory: this.blockchain.chain.reduce((count, block) => {
+            return count + block.transactions.filter(tx => 
+              tx.action === 'inventory_adjusted' && tx.data?.adjustment < 0
+            ).length;
+          }, 0),
+          recent_orders: this.blockchain.chain.slice(-5).flatMap(block => 
+            block.transactions.filter(tx => 
+              tx.action === 'order_created' || tx.action === 'order_approved'
+            ).map(tx => ({
+              id: tx.hash.substring(0, 8),
+              po_number: tx.data?.order_id || `PO-${tx.hash.substring(0, 8)}`,
+              supplier: { name: tx.to || 'Unknown Supplier' },
+              date_created: new Date(tx.timestamp).toISOString(),
+              status: tx.action === 'order_approved' ? 'Approved' : 'Pending',
+              total_amount: tx.amount || 0
+            }))
+          ).slice(0, 5)
+        };
+        
+        res.json(stats);
+      } catch (error) {
+        console.error('Error getting stats:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Authentication endpoints
+    this.app.post('/api/auth/login', async (req, res) => {
+      try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+          return res.status(400).json({ error: 'Username and password are required' });
+        }
+
+        // Authenticate user with database
+        const user = await this.database.authenticateUser(username, password);
+        
+        if (!user) {
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId: user.id, username: user.username },
+          this.jwtSecret,
+          { expiresIn: '24h' }
+        );
+
+        // Create session in database
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        await this.database.createSession(user.id, token, expiresAt);
+        
+        res.json({
+          user: {
+            id: user.id,
+            username: user.username,
+            full_name: user.full_name,
+            position: user.position,
+            department: user.department,
+            role: user.role,
+            is_admin: user.is_admin
+          },
+          token,
+          message: 'Login successful'
+        });
+      } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+      }
+    });
+
+    this.app.post('/api/auth/logout', async (req, res) => {
+      try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        
+        if (token) {
+          await this.database.deleteSession(token);
+        }
+        
+        res.json({ message: 'Logout successful' });
+      } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Logout failed' });
+      }
+    });
+
+    this.app.get('/api/auth/me', async (req, res) => {
+      try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        
+        if (!token) {
+          return res.status(401).json({ error: 'No token provided' });
+        }
+
+        const session = await this.database.getSession(token);
+        if (!session) {
+          return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+
+        const user = await this.database.getUserById(session.user_id);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+          id: user.id,
+          username: user.username,
+          full_name: user.full_name,
+          position: user.position,
+          department: user.department,
+          role: user.role,
+          is_admin: user.is_admin
+        });
+      } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({ error: 'Failed to get user' });
+      }
+    });
+
+    // Suppliers endpoints
+    this.app.get('/api/suppliers', async (req, res) => {
+      try {
+        const suppliers = await this.database.getAllSuppliers();
+        res.json(suppliers);
+      } catch (error) {
+        console.error('Error getting suppliers:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/suppliers', async (req, res) => {
+      try {
+        const supplierData = req.body;
+        const newSupplier = await this.database.createSupplier(supplierData);
+        
+        // Create blockchain transaction for audit trail
+        const transaction = new Transaction(
+          'system',
+          newSupplier.id.toString(),
+          0,
+          'supplier_registered',
+          newSupplier
+        );
+        this.blockchain.addTransaction(transaction);
+        
+        res.status(201).json(newSupplier);
+      } catch (error) {
+        console.error('Error creating supplier:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.get('/api/suppliers/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const supplier = await this.database.getSupplierById(id);
+        
+        if (!supplier) {
+          return res.status(404).json({ error: 'Supplier not found' });
+        }
+        
+        res.json(supplier);
+      } catch (error) {
+        console.error('Error getting supplier:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.put('/api/suppliers/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const supplierData = req.body;
+        const updatedSupplier = await this.database.updateSupplier(id, supplierData);
+        
+        res.json(updatedSupplier);
+      } catch (error) {
+        console.error('Error updating supplier:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.delete('/api/suppliers/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        await this.database.deleteSupplier(id);
+        
+        res.json({ message: 'Supplier deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting supplier:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Orders endpoints
+    this.app.get('/api/orders', async (req, res) => {
+      try {
+        const orders = await this.database.getAllOrders();
+        res.json(orders);
+      } catch (error) {
+        console.error('Error getting orders:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/orders', async (req, res) => {
+      try {
+        const orderData = req.body;
+        const newOrder = await this.database.createOrder(orderData);
+        
+        // Create blockchain transaction for audit trail
+        const transaction = new Transaction(
+          'system',
+          newOrder.id.toString(),
+          0,
+          'order_created',
+          newOrder
+        );
+        this.blockchain.addTransaction(transaction);
+        
+        res.status(201).json(newOrder);
+      } catch (error) {
+        console.error('Error creating order:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.get('/api/orders/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const order = await this.database.getOrderById(id);
+        
+        if (!order) {
+          return res.status(404).json({ error: 'Order not found' });
+        }
+        
+        res.json(order);
+      } catch (error) {
+        console.error('Error getting order:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.put('/api/orders/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const orderData = req.body;
+        const updatedOrder = await this.database.updateOrder(id, orderData);
+        
+        res.json(updatedOrder);
+      } catch (error) {
+        console.error('Error updating order:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.delete('/api/orders/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        await this.database.deleteOrder(id);
+        
+        res.json({ message: 'Order deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Inventory endpoints
+    this.app.get('/api/inventory', async (req, res) => {
+      try {
+        const inventory = await this.database.getAllInventory();
+        res.json(inventory);
+      } catch (error) {
+        console.error('Error getting inventory:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/inventory', async (req, res) => {
+      try {
+        const inventoryData = req.body;
+        const newInventory = await this.database.createInventory(inventoryData);
+        
+        res.status(201).json(newInventory);
+      } catch (error) {
+        console.error('Error creating inventory:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.put('/api/inventory/:id', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const inventoryData = req.body;
+        const updatedInventory = await this.database.updateInventory(id, inventoryData);
+        
+        res.json(updatedInventory);
+      } catch (error) {
+        console.error('Error updating inventory:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/inventory/:id/adjust', async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const { adjustment, reason } = req.body;
+        
+        const updatedInventory = await this.database.adjustInventory(id, adjustment, reason);
+        
+        // Create blockchain transaction for audit trail
+        const transaction = new Transaction(
+          'system',
+          id.toString(),
+          0,
+          'inventory_adjusted',
+          { adjustment, reason, inventory_id: id }
+        );
+        this.blockchain.addTransaction(transaction);
+        
+        res.json(updatedInventory);
+      } catch (error) {
+        console.error('Error adjusting inventory:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Products endpoints
+    this.app.get('/api/products', async (req, res) => {
+      try {
+        const products = await this.database.getAllProducts();
+        res.json(products);
+      } catch (error) {
+        console.error('Error getting products:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.post('/api/products', async (req, res) => {
+      try {
+        const productData = req.body;
+        const newProduct = await this.database.createProduct(productData);
+        
+        // Create blockchain transaction for audit trail
+        const transaction = new Transaction(
+          'system',
+          newProduct.id.toString(),
+          0,
+          'order_created',
+          {
+            product_id: newProduct.id,
+            name: newProduct.name,
+            description: newProduct.description,
+            unit: newProduct.unit,
+            unit_price: newProduct.unit_price,
+            category: newProduct.category
+          }
+        );
+
+        this.blockchain.addTransaction(transaction);
+        
+        res.json(newProduct);
+      } catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Audit logs endpoint
+    this.app.get('/api/audit-logs', async (req, res) => {
+      try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const offset = (page - 1) * limit;
+        
+        // Get filters from query parameters
+        const filters = {
+          action: req.query.action || '',
+          table_name: req.query.table_name || '',
+          username: req.query.username || '',
+          date_from: req.query.date_from || '',
+          date_to: req.query.date_to || ''
+        };
+
+        // Get audit logs from database
+        const auditLogs = await this.database.getAuditLogs(filters, limit, offset);
+        const totalCount = await this.database.getAuditLogsCount(filters);
+
+        res.json({
+          logs: auditLogs,
+          total: totalCount,
+          page: page,
+          limit: limit,
+          totalPages: Math.ceil(totalCount / limit)
+        });
+      } catch (error) {
+        console.error('Error getting audit logs:', error);
+        res.status(500).json({ error: error.message });
+      }
     });
 
     // 404 handler
@@ -645,20 +738,33 @@ export class BlockchainNode {
       console.log(`Genesis: ${this.genesis}`);
 
       // Initialize database
+      console.log('🔄 Initializing database...');
       await this.database.init();
       console.log('✅ Database initialized');
 
       // Start HTTP server first
-      this.httpServer.listen(this.port, this.host, () => {
-        console.log(`HTTP server listening on ${this.host}:${this.port}`);
+      console.log('🔄 Starting HTTP server...');
+      await new Promise((resolve, reject) => {
+        this.httpServer.listen(this.port, this.host, () => {
+          console.log(`HTTP server listening on ${this.host}:${this.port}`);
+          resolve();
+        });
+        
+        this.httpServer.on('error', (error) => {
+          console.error('❌ HTTP server error:', error);
+          reject(error);
+        });
       });
       
       // Start P2P network with existing server
+      console.log('🔄 Starting P2P network...');
       await this.p2pNetwork.startWithExistingServer();
+      console.log('✅ P2P network started');
 
       // Connect to bootstrap peer if specified
       if (this.peerHost) {
         try {
+          console.log(`🔄 Connecting to bootstrap peer: ${this.peerHost}:${this.peerPort}`);
           await this.p2pNetwork.connectToPeer(this.peerHost, this.peerPort);
           console.log(`Connected to bootstrap peer: ${this.peerHost}:${this.peerPort}`);
         } catch (error) {
@@ -668,7 +774,9 @@ export class BlockchainNode {
 
       // Load blockchain from file if exists
       try {
+        console.log('🔄 Loading blockchain from file...');
         await this.blockchain.loadFromFile(`blockchain_${this.port}.json`);
+        console.log('✅ Blockchain loaded from file');
       } catch (error) {
         console.log('No existing blockchain file found, starting fresh');
       }
@@ -676,7 +784,12 @@ export class BlockchainNode {
       // Seed demo data if this is a genesis node and chain is empty
       if (this.genesis && this.blockchain.chain.length === 1) {
         console.log('🌱 Seeding demo data for genesis node...');
-        seedDemoData(this.blockchain);
+        try {
+          seedDemoData(this.blockchain);
+          console.log('✅ Demo data seeded');
+        } catch (error) {
+          console.log('⚠️ Demo data seeding failed, continuing without demo data:', error.message);
+        }
       }
 
       console.log('Blockchain Node started successfully!');
@@ -685,7 +798,8 @@ export class BlockchainNode {
       console.log(`Pending transactions: ${this.blockchain.pendingTransactions.length}`);
 
     } catch (error) {
-      console.error('Error starting Blockchain Node:', error);
+      console.error('❌ Error starting Blockchain Node:', error);
+      console.error('Stack trace:', error.stack);
       throw error;
     }
   }
@@ -789,27 +903,53 @@ Examples:
 }
 
 // Main execution
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const options = parseArgs();
+try {
+  console.log('🔍 About to check import.meta.url...');
+  console.log('🔍 import.meta.url:', import.meta.url);
+  console.log('🔍 process.argv[1]:', process.argv[1]);
   
-  const node = new BlockchainNode(options);
+  // Normalize paths for comparison
+  const importPath = import.meta.url.replace('file://', '').replace(/\//g, '\\').replace(/^\\+/, '');
+  const argvPath = process.argv[1];
   
-  // Graceful shutdown
-  process.on('SIGINT', async () => {
-    console.log('\nReceived SIGINT, shutting down gracefully...');
-    await node.stop();
-    process.exit(0);
-  });
+  console.log('🔍 Normalized importPath:', importPath);
+  console.log('🔍 Normalized argvPath:', argvPath);
+  
+  if (importPath === argvPath) {
+    console.log('✅ Paths match, executing main logic');
+    
+    const options = parseArgs();
+    
+    console.log('🚀 Starting Blockchain Node with options:', options);
+    
+    const node = new BlockchainNode(options);
+    
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      console.log('\nReceived SIGINT, shutting down gracefully...');
+      await node.stop();
+      process.exit(0);
+    });
 
-  process.on('SIGTERM', async () => {
-    console.log('\nReceived SIGTERM, shutting down gracefully...');
-    await node.stop();
-    process.exit(0);
-  });
+    process.on('SIGTERM', async () => {
+      console.log('\nReceived SIGTERM, shutting down gracefully...');
+      await node.stop();
+      process.exit(0);
+    });
 
-  // Start the node
-  node.start().catch(error => {
-    console.error('Failed to start node:', error);
-    process.exit(1);
-  });
+    // Start the node
+    console.log('🔄 Calling node.start()...');
+    node.start().catch(error => {
+      console.error('❌ Failed to start node:', error);
+      console.error('Stack trace:', error.stack);
+      process.exit(1);
+    });
+  } else {
+    console.log('❌ Paths do not match');
+    console.log('🔍 This file is being imported as a module, not executed directly');
+  }
+} catch (error) {
+  console.error('❌ Error in main execution:', error);
+  console.error('Stack trace:', error.stack);
+  process.exit(1);
 }
